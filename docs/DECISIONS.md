@@ -32,6 +32,18 @@ A running record of options considered, what was rejected, and what went wrong.
 
 **Model-written explanations were tested and rejected.** The base model, with the adapter disabled, was asked to explain verdicts from only the cited sentences. On real validation rows it invented facts: it called a female patient male, and said age 58 falls outside a 25-65 range. A check that rejected numbers absent from the sources did not catch either error, since both used numbers or words already present. The assignment requires explanations based only on available information, so explanations now state the verdict in fixed wording and quote the cited sentences exactly. This is less fluent, but it cannot introduce a fact.
 
+## Fine-tuning results (validation only)
+
+**R3 was selected: rank 32 with oversampled rare labels.** Validation macro-F1 was 0.558 and accuracy 74.3%, against 0.147 and 17.5% for the same model untrained, and 0.215 and 62.1% for always guessing the most common label. R1 (0.534) and R2 (0.552) were close. With 8 validation patients the patient-level 95% interval for R3 is 0.42 to 0.64, so these gaps may be noise. R3 is selected by the pre-stated rule, not because it is clearly better.
+
+**Listing evidence first hurt the labels.** R4 reached only 0.459 macro-F1, although its evidence F1 (0.526) was slightly higher. The label-first output format was kept.
+
+**Qwen beat SmolLM2.** Fine-tuned SmolLM2-1.7B (R5) reached 0.514 macro-F1 with low evidence recall (0.304), and has no matching smaller draft in this setup.
+
+**Overfitting appeared early.** In most runs validation loss rose after epochs 2 to 4 while training loss kept falling. Early stopping uses generated macro-F1, since loss and macro-F1 did not move together.
+
+**The adapter reproduces on other hardware.** Reloading R3 on the laptop GPU with a different batch size gave 205 of 206 identical outputs and identical labels compared with the Kaggle run. The untrained model was more sensitive: 17.0% accuracy locally against 17.5% on Kaggle, because padded batches change floating-point results. Final comparisons will use a single batch size on one machine.
+
 ## Attention
 
 **The tiled version is much slower in Python, and that is expected.** On the laptop GPU at length 4096 with causal masks, the reference took 53 ms, PyTorch's fused kernel 19 ms, and tiled attention 101 ms with 256-token tiles or 21.7 s with 16-token tiles. Each tile costs interpreter time, separate GPU submissions and small allocations, so small tiles lose to overhead. A compiled kernel does the same loop in fused native code with no interpreter between tiles. Larger tiles reduce that overhead, which is why the 256-token tile is fastest.

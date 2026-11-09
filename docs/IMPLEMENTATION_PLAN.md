@@ -71,8 +71,8 @@ start_app.bat         double-click launcher
 - [x] **2.2 Local smoke test.** Run a few examples on the laptop to catch bugs before spending Kaggle time.
 - [x] **2.3 Explanation design.** Explanations state the verdict in fixed wording and quote the cited sentences exactly. A base-model paraphrase was tested and rejected because it invented facts (see `docs/DECISIONS.md`). No GPT-4 text is used anywhere.
 - [x] **2.4 Kaggle notebook.** `kaggle/train.ipynb` clones the repo, installs pinned packages and runs the experiment list.
-- [ ] **2.5 `[YOU]` Kaggle run.** Phone verification is done. Select T4 GPU, turn on internet, run the notebook.
-- [ ] **2.6 Experiment list, validation only.**
+- [x] **2.5 `[YOU]` Kaggle run.** Phone verification is done. Select T4 GPU, turn on internet, run the notebook.
+- [x] **2.6 Experiment list, validation only.**
 
 | Run | What it tests | Why |
 |---|---|---|
