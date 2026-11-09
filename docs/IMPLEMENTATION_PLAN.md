@@ -105,7 +105,7 @@ start_app.bat         double-click launcher
 - [x] **4.2 Cached decoder.** `cached_decoder.py`, written as an explicit loop. Prefill runs the full prompt. Each later step sends only the new token, with an extended attention mask, the next `position_ids` taken from the mask, and `cache_position`. The cache object is passed in and updated by hand.
 - [x] **4.3 State checks.** Assert the cache length equals tokens processed at every step. Log cache bytes per step to show growth. Test a left-padded prompt to prove masking and positions are correct.
 - [x] **4.4 Equivalence tests.** At least 3 input lengths by 3 output lengths under greedy decoding, with EOS ignored so lengths are exact. Compare tokens, record maximum logit difference per step, and run in float32 and float16. Use `model.generate` as a third check. Investigate and write up any mismatch.
-- [ ] **4.5 Benchmark.** `bench_cache.py`: warm-up run, `torch.cuda.synchronize()` around timers, 5 repeats, median and spread, for prefill, decode, tokens/s and peak GPU and CPU memory.
+- [x] **4.5 Benchmark.** `bench_cache.py`: warm-up run, `torch.cuda.synchronize()` around timers, 5 repeats, median and spread, for prefill, decode, tokens/s and peak GPU and CPU memory.
   Done when: results are in `results/bench_cache.json`, and the report explains positions, masking, cache growth and numerical differences.
 
 ## Phase 5: Tiled attention with online softmax (E1, E2, E3)
@@ -113,7 +113,7 @@ start_app.bat         double-click launcher
 - [x] **5.1 Reference attention.** `reference.py`: scaled by the square root of d, causal and padding masks applied before softmax, stable softmax by subtracting the row maximum, safe handling of fully masked rows.
 - [x] **5.2 Tiled attention.** `tiled_online.py`: loop over query and key tiles, applying the mask per tile. For each row keep a running maximum `m`, normalizer `l` and output `O`. When `m` rises, rescale old `l` and `O` by `exp(m_old - m_new)`. Divide `O` by `l` at the end. No fused backend.
 - [x] **5.3 Numerical tests.** Multiple shapes (including length 1 and non-square), tile sizes, causal, padding and no mask, large score magnitudes, float32 and float64. Report maximum and mean absolute error against the reference, and compare with `F.scaled_dot_product_attention`.
-- [ ] **5.4 Performance.** `bench_attention.py`: runtime and peak memory on CPU and GPU across lengths and tile sizes.
+- [x] **5.4 Performance.** `bench_attention.py`: runtime and peak memory on CPU and GPU across lengths and tile sizes.
   Done when: the report explains honestly why Python loops, repeated small allocations and no fused kernel can make the educational version slower.
 - [x] **5.5 Stretch.** Swap the tiled attention into the real model and confirm identical generated tokens on one prompt.
 
@@ -123,15 +123,15 @@ start_app.bat         double-click launcher
 - [x] **6.2 Algorithm.** `speculative.py`, with cache rule "cache holds every token except the last one". Each round: the draft proposes k tokens; the target checks them in one forward pass; the longest matching prefix is accepted; the target's own next token is added as the correction or bonus token; both caches are cropped to match. EOS and length limits are handled mid-round.
 - [x] **6.3 State tests.** Assert the caching rule on both models every round, including all-accepted, all-rejected and EOS-mid-draft cases.
 - [x] **6.4 Equivalence tests.** Token equality against the Phase 4 greedy decoder on many prompts, and Hugging Face assisted generation as a reference check only.
-- [ ] **6.5 Benchmark.** k of 2, 4 and 8, on real short JSON outputs and on longer generations. Report acceptance rate, accepted tokens per round, latency, tokens/s, speedup or slowdown and memory, using the same timing method as Phase 4.
+- [x] **6.5 Benchmark.** k of 2, 4 and 8, on real short JSON outputs and on longer generations. Report acceptance rate, accepted tokens per round, latency, tokens/s, speedup or slowdown and memory, using the same timing method as Phase 4.
   Done when: any slowdown is explained with measured draft and verification costs.
 
 ## Phase 7: Final runs on Kaggle (B4, C1, C2, C3, D3, E3, F3)
 
 - [x] **7.1 Freeze.** Commit the chosen configuration before opening the test set. Tag it `final-config`.
-- [ ] **7.2 `[YOU]` Run `kaggle/final_eval_and_benchmarks.ipynb`.** Before/after evaluation on identical validation and test examples, all baselines, then all three benchmarks.
+- [x] **7.2 `[YOU]` Run `kaggle/final_eval_and_benchmarks.ipynb`.** Before/after evaluation on identical validation and test examples, all baselines, then all three benchmarks.
 - [ ] **7.4 Optional large-target benchmark.** `kaggle/optional_large_target.ipynb` runs the untrained Qwen2.5-7B target with 0.5B and 1.5B drafts on two T4 GPUs. It is separate from the main results and needs no training outputs.
-- [ ] **7.3 Commit outputs.** Metrics, predictions and logs go to `results/`. No model, prompt or threshold changes after this point.
+- [x] **7.3 Commit outputs.** Metrics, predictions and logs go to `results/`. No model, prompt or threshold changes after this point.
 
 ## Phase 8: Error analysis (C4)
 

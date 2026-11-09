@@ -20,8 +20,8 @@
       "overall": {
         "rows": 206,
         "accuracy": 0.7427184466019418,
-        "macro_f1": 0.5583533282935078,
-        "macro_f1_absent_labels_as_zero": 0.5583533282935078,
+        "macro_f1": 0.5583533282935077,
+        "macro_f1_absent_labels_as_zero": 0.5583533282935077,
         "labels_absent_from_gold": [],
         "per_class": {
           "excluded": {
@@ -280,45 +280,45 @@
     "evidence": {
       "overall": {
         "micro": {
-          "precision": 0.5185185185185185,
-          "recall": 0.48695652173913045,
-          "f1": 0.5022421524663677
+          "precision": 0.5181818181818182,
+          "recall": 0.4956521739130435,
+          "f1": 0.5066666666666666
         },
         "macro_all_rows": {
-          "precision": 0.7409500693481277,
-          "recall": 0.769822006472492,
-          "f1": 0.7458198489751887,
+          "precision": 0.7360957004160887,
+          "recall": 0.7661812297734628,
+          "f1": 0.742259978425027,
           "rows": 206
         },
         "macro_rows_with_gold_evidence": {
-          "precision": 0.4626190476190477,
-          "recall": 0.5287037037037037,
-          "f1": 0.4737654320987653,
+          "precision": 0.4626190476190476,
+          "recall": 0.5314814814814816,
+          "f1": 0.4767283950617284,
           "rows": 90
         },
         "counts": {
-          "both_empty": 111,
-          "gold_empty_predicted_some": 5,
+          "both_empty": 110,
+          "gold_empty_predicted_some": 6,
           "gold_some_predicted_empty": 36,
           "both_nonempty": 54
         }
       },
       "inclusion": {
         "micro": {
-          "precision": 0.5121951219512195,
-          "recall": 0.6268656716417911,
-          "f1": 0.563758389261745
+          "precision": 0.5180722891566265,
+          "recall": 0.6417910447761194,
+          "f1": 0.5733333333333333
         },
         "macro_all_rows": {
           "precision": 0.6965007215007215,
-          "recall": 0.7588383838383838,
-          "f1": 0.704124579124579,
+          "recall": 0.7626262626262627,
+          "f1": 0.7081649831649831,
           "rows": 66
         },
         "macro_rows_with_gold_evidence": {
           "precision": 0.6393809523809524,
-          "recall": 0.7216666666666667,
-          "f1": 0.6494444444444444,
+          "recall": 0.7266666666666667,
+          "f1": 0.6547777777777778,
           "rows": 50
         },
         "counts": {
@@ -330,25 +330,25 @@
       },
       "exclusion": {
         "micro": {
-          "precision": 0.5384615384615384,
+          "precision": 0.5185185185185185,
           "recall": 0.2916666666666667,
-          "f1": 0.3783783783783784
+          "f1": 0.37333333333333335
         },
         "macro_all_rows": {
-          "precision": 0.7619047619047619,
-          "recall": 0.775,
-          "f1": 0.7654761904761905,
+          "precision": 0.7547619047619047,
+          "recall": 0.7678571428571429,
+          "f1": 0.7583333333333334,
           "rows": 140
         },
         "macro_rows_with_gold_evidence": {
-          "precision": 0.2416666666666667,
+          "precision": 0.24166666666666664,
           "recall": 0.2875,
           "f1": 0.25416666666666665,
           "rows": 40
         },
         "counts": {
-          "both_empty": 97,
-          "gold_empty_predicted_some": 3,
+          "both_empty": 96,
+          "gold_empty_predicted_some": 4,
           "gold_some_predicted_empty": 26,
           "both_nonempty": 14
         }
@@ -368,12 +368,12 @@
         "high": 0.788235294117647
       },
       "macro_f1": {
-        "low": 0.4211630407915392,
+        "low": 0.42116304079153927,
         "high": 0.6353524711051594
       },
       "evidence_micro_f1": {
-        "low": 0.4110671936758894,
-        "high": 0.6198830409356725
+        "low": 0.4234527687296417,
+        "high": 0.6162162162162161
       }
     }
   }
