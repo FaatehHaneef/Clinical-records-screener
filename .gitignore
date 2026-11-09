@@ -1,5 +1,6 @@
 .venv/
 models/
+runs/
 papers/
 data/nltk_data/
 __pycache__/
