@@ -18,6 +18,7 @@ export type CriterionResult = {
   criterion_type: 'inclusion' | 'exclusion';
   criterion: string;
   label: string;
+  adjusted?: boolean;
   valid: boolean;
   unconfirmed: boolean;
   evidence_ids: number[];

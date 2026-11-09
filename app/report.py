@@ -12,6 +12,7 @@ from pathlib import Path
 from app.pipeline import FAILED, MET, NOT_APPLICABLE, UNKNOWN, missing_to_show, overall_reason
 
 FONTS = Path(__file__).resolve().parent / "assets" / "fonts"
+ADJUSTED_NOTE = "Adjusted by number check."
 _OUTCOME_CLASSES = {"Likely ineligible": "failed", "Needs review": "unknown", "Potentially eligible": "met"}
 _COUNTS = (
     ("met", "Met"),
@@ -54,6 +55,7 @@ h3{font:500 15px/1.4 Geist,'Segoe UI',sans-serif}
 .tag.met{background:#e2f4ea;color:#14663f}.tag.failed{background:#fbe6e6;color:#962a2a}.tag.unknown{background:#fbf1d9;color:#7d5a0c}.tag.na{background:#ebedf0;color:#4a505b}.tag.invalid{background:#efe8fa;color:#57359a}
 .why{margin:5px 0 0;color:var(--soft)}
 .missing{margin:5px 0 0;font-size:13px;color:var(--faint)}
+.adjusted{margin:5px 0 0;font-size:12px;color:var(--faint)}
 .quotes{margin:9px 0 0;padding:0;list-style:none}
 .quotes li{display:flex;gap:10px;padding:2px 0 2px 12px;border-left:2px solid var(--line)}
 .sid{flex:none;min-width:20px;font-size:12px;line-height:21px;color:var(--faint);font-variant-numeric:tabular-nums}
@@ -112,10 +114,11 @@ def _criterion(record, e):
     # The cited sentences are quoted just above, so the explanation does not repeat them.
     why = record["explanation"].split(" Cited sentences:")[0]
     missing = "".join(f"<p class='missing'>{e(text)}</p>" for text in missing_to_show(record))
+    adjusted = f"<p class='adjusted'>{ADJUSTED_NOTE}</p>" if record.get("adjusted") else ""
     return (
         f"<article class='crit'><div class='head'><h3>{e(record['criterion'])}</h3>"
         f"<span class='tag {_tag_class(record['label'])}'>{e(_label_text(record['label']))}</span></div>"
-        f"{quotes}<p class='why'>{e(why)}</p>{missing}</article>"
+        f"{quotes}<p class='why'>{e(why)}</p>{missing}{adjusted}</article>"
     )
 
 

@@ -66,6 +66,8 @@ A running record of options considered, what was rejected, and what went wrong.
 
 **Vercel was rejected.** It has no GPU and its serverless functions cannot keep a 3 GB model loaded. The assignment accepts a locally hosted browser application, which also keeps the live benchmark on real hardware and works offline.
 
+**Retraining and a larger model were rejected after the test split was opened; a deterministic number check was added instead.** Rehearsal showed the model is unreliable at numeric comparisons. Retraining or changing models would break the rule that the test set stays untouched and the models are not tuned on it, and added training data would break the rule to use only the prescribed dataset. A model larger than 1.5B also does not fit the 4 GB laptop GPU that runs the live application. The check corrects only bare comparisons with one clear value in the note and otherwise stays silent. It passed a validation bar set in advance, 5 of 5 decisions correct, but all 5 were age criteria the model already had right, so its benefit on BMI and laboratory values is unmeasured on the dataset. It sits outside every reported metric.
+
 **MLflow was not used.** CSV and JSON logs with pinned configurations already meet the logging and reproducibility requirements, and it would add a dependency with no assessed benefit.
 
 ## Environment failures

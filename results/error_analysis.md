@@ -124,7 +124,15 @@ This is separate from the test split and is not a benchmark. Five invented notes
 - **A cited failure can still be wrong.** The BMI error above made that patient "Likely ineligible". The overall rule requires a citation, but a citation shows where the model looked and does not prove its reasoning was right.
 - **A stated exclusion can be missed.** "Current anticoagulant therapy" with apixaban in the note came back "not excluded" while citing that very sentence, and it counted as met. "History of tuberculosis" with treated tuberculosis in the note came back "not excluded" with no citation, which the app does flag for review.
 - **Silence again became "not excluded".** Hepatitis B, rituximab and active cancer were not mentioned in their notes and all came back "not excluded" with no citation, matching the main test-split pattern. All three are flagged.
-- **Headings can pull citations off target.** In a list-formatted note, "Atrial fibrillation" cited the heading line "History:" rather than the bullet below it. Removing heading lines at the sentence review step avoids this.
+- **Headings can pull citations off target.** In a list-formatted note, "Atrial fibrillation" cited the heading line "History:" rather than the bullet below it. The app now removes heading lines and list marks from unseen notes before numbering them.
+
+### Deterministic number check added to the application
+
+Because the model cannot be changed after the test split was opened, a plain-code check now runs on its output in the application (`app/number_check.py`). When a criterion is a bare numeric comparison and the note holds one clear value, the code does the comparison and replaces a disagreeing verdict. Those rows carry the line "Adjusted by number check." and the model's original answer stays in the JSON report.
+
+It was developed on training notes only (16 decisions, all matching the expert labels) and then judged once on the validation split against a bar fixed in advance: every decision had to match the expert label. It made 5 decisions, all correct, on 206 validation rows. All 5 were age criteria the model had already answered correctly, so it changed nothing on validation. The dataset gave no validation evidence for BMI or laboratory values, which are covered only by unit tests.
+
+It was never run on the test split, and all reported test metrics are for the model alone. Rerunning the rehearsal with the check and the heading cleanup raised the match from 14 to 18 of 24 (`results/rehearsal_with_number_check.txt`). That figure is not independent evidence, because the check was built after seeing those same failures.
 
 ## What this means
 

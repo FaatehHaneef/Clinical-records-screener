@@ -6,6 +6,8 @@ import nltk
 
 NLTK_DIR = Path(__file__).resolve().parents[2] / "data" / "nltk_data"
 _LINE = re.compile(r"^(\d+)\.\s*(.*)$", re.DOTALL)
+_LIST_MARK = re.compile(r"^\s*(?:[-*\u2022]+|\d+[.)])\s+")
+_HEADING = re.compile(r"^[A-Za-z][A-Za-z /&-]{0,40}:$")
 
 
 def parse_numbered_note(note):
@@ -37,6 +39,7 @@ def split_unseen_note(text):
         nltk.data.path.insert(0, str(NLTK_DIR))
     pieces = []
     for block in text.splitlines():
-        if block.strip():
+        block = _LIST_MARK.sub("", block).strip()
+        if block and not _HEADING.match(block):
             pieces.extend(s.strip() for s in nltk.sent_tokenize(block, language="english") if s.strip())
     return dict(enumerate(pieces))

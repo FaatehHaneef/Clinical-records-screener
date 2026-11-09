@@ -3,6 +3,7 @@ import hashlib
 import re
 from datetime import datetime, timezone
 
+from app.number_check import check_number
 from screener.data.sentences import split_unseen_note
 from screener.eval.explain import NO_EVIDENCE, explain
 from screener.eval.verifier import INVALID
@@ -90,16 +91,21 @@ def validate_mode(mode):
 
 def build_record(index, criterion_type, criterion, verified, sentences, timing):
     """One criterion's complete result, traceable to the note's original sentence IDs."""
-    if verified.valid and verified.label == NOT_APPLICABLE and not verified.evidence:
+    label, evidence = verified.label, verified.evidence
+    number = check_number(criterion_type, criterion, sentences) if verified.valid else None
+    adjusted = number is not None and number.label != verified.label
+    if adjusted:
+        label, evidence = number.label, (number.sentence_id,)
+    if verified.valid and label == NOT_APPLICABLE and not evidence:
         # Not applicable needs no citation, so the uncited wording about review would be wrong here.
         explanation = "The model marked this criterion as not applicable and cited no sentence."
     elif verified.valid:
-        explanation = explain(verified.label, verified.evidence, sentences)
+        explanation = explain(label, evidence, sentences)
     else:
         explanation = "The model output could not be verified, so no verdict is reported."
-    unconfirmed = verified.valid and verified.label != NOT_APPLICABLE and not verified.evidence
+    unconfirmed = verified.valid and label != NOT_APPLICABLE and not evidence
     missing = []
-    if verified.label == UNKNOWN:
+    if label == UNKNOWN:
         missing.append("The note does not contain enough to settle this criterion.")
     if unconfirmed:
         missing.append(NO_EVIDENCE)
@@ -107,11 +113,13 @@ def build_record(index, criterion_type, criterion, verified, sentences, timing):
         "index": index,
         "criterion_type": criterion_type,
         "criterion": criterion,
-        "label": verified.label,
+        "label": label,
+        "model_label": verified.label,
+        "adjusted": adjusted,
         "valid": verified.valid,
         "unconfirmed": unconfirmed,
-        "evidence_ids": list(verified.evidence),
-        "evidence": [{"id": i, "text": sentences[i]} for i in verified.evidence],
+        "evidence_ids": list(evidence),
+        "evidence": [{"id": i, "text": sentences[i]} for i in evidence],
         "explanation": explanation,
         "missing_information": missing,
         "errors": list(verified.errors),

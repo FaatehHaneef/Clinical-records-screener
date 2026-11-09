@@ -79,3 +79,13 @@ def test_unseen_note_splitting_gives_sequential_ids():
     assert list(sentences) == list(range(len(sentences)))
     assert sentences[1].startswith("Dr. Lee")
     assert len(sentences) == 3
+
+
+def test_unseen_notes_lose_headings_and_list_marks():
+    note = "History:\n- 71-year-old woman with atrial fibrillation.\n* Takes apixaban.\n1. Stroke two years ago.\nAllergies: none."
+    assert list(split_unseen_note(note).values()) == [
+        "71-year-old woman with atrial fibrillation.",
+        "Takes apixaban.",
+        "Stroke two years ago.",
+        "Allergies: none.",
+    ]

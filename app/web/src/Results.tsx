@@ -99,7 +99,10 @@ export function CriterionDetail({ screening, index, onBack, onMove }: { screenin
         <h1 className="m-0 mt-1 text-2xl leading-snug font-medium">{result.criterion}</h1>
         <Verdict label={result.label} className="glow-text mt-3 text-3xl" />
       </div>
-      <p className="m-0 leading-relaxed text-neutral-200">{result.explanation}</p>
+      <div>
+        <p className="m-0 leading-relaxed text-neutral-200">{result.explanation}</p>
+        {result.adjusted && <p className="m-0 mt-1 text-sm text-neutral-400">Adjusted by number check.</p>}
+      </div>
       {missing.length > 0 && (
         <Detail title="Missing information">
           {missing.map((text) => (
