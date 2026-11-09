@@ -5,7 +5,7 @@ function orbSize() {
   return Math.round(Math.min(window.innerHeight * 0.68, window.innerWidth * 0.86, 720));
 }
 
-/** The Searching orb drawn straight onto a canvas, because the packaged component only ships small sizes. */
+/** The Connecting orb drawn straight onto a canvas, because the packaged component only ships small sizes. */
 export default function LandingOrb() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState(orbSize);
@@ -23,7 +23,7 @@ export default function LandingOrb() {
     const scale = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = size * scale;
     canvas.height = size * scale;
-    const { mode, opts, speed } = resolvePreset('searching', 64);
+    const { mode, opts, speed } = resolvePreset('connecting', 64);
     const draw = (seconds: number) => {
       context.setTransform(scale, 0, 0, scale, 0, 0);
       context.clearRect(0, 0, size, size);

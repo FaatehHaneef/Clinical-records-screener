@@ -178,7 +178,7 @@ function AttentionLab() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="card flex flex-wrap items-end gap-4 p-5">
+      <div className="card grid items-end gap-4 p-5 sm:grid-cols-[1fr_1fr_auto]">
         <label className="flex flex-col gap-2 text-neutral-300">
           Sequence length
           <select className="field" value={length} onChange={(event) => setLength(Number(event.target.value))}>
@@ -286,7 +286,7 @@ function Reports({ onOpen }: { onOpen: (id: string) => void }) {
 export default function Inspect({ status, sentences, criterion, criterionType, onOpenReport }: { status: Status | null; sentences: string[]; criterion: string; criterionType: string; onOpenReport: (id: string) => void }) {
   const ready = status?.state === 'ready';
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-5 pt-4 pb-20">
+    <div className="flex w-full flex-col gap-10 px-8 pt-4 pb-20 lg:px-12">
       <div>
         <h1 className="glow-text m-0 text-4xl font-medium">Inspect</h1>
         <div className="mt-4 flex flex-wrap gap-2">
