@@ -1,0 +1,9 @@
+.venv/
+models/
+papers/
+data/nltk_data/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.cache/
+GenAI_Assignment#2.pdf
