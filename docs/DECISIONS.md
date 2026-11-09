@@ -44,6 +44,8 @@ A running record of options considered, what was rejected, and what went wrong.
 
 **Draft on CPU made decoding about three times slower, even with high acceptance.** With the 1.5B target on the laptop GPU and the 0.5B draft on CPU, ten real screening prompts took 12.8 s with ordinary greedy decoding and about 40 s speculatively, at 85-95% acceptance. Tokens matched greedy decoding in every case. The target's own work fell sharply (verification took 3.4-6.0 s against 11.5 s of greedy decoding), but draft generation on CPU took 15-23 s and prefilling the CPU draft about 11 s more. Speculative decoding pays off only when drafting is much cheaper than target steps. The Kaggle run, with both models on the GPU, tests that condition.
 
+**Moving the draft to the laptop GPU did not produce a real speedup.** Speculative decoding took 37-38 s on the ten screening prompts, against 20.1 s for greedy, at the same acceptance. A draft step cost about the same as a target step on this GPU: 0.5B drafting took 15.8-23.8 s for that workload, against 15.5 s of greedy decoding. Fixed per-step costs, such as interpreter time and mask building, dominate at these model sizes, so a smaller model is not proportionally faster. With both models loaded the 4 GB GPU was almost full, which also slowed greedy decoding here (20.1 s against 12.8 s with the draft on CPU). The single 1.06-1.09x gain, at 1024 input tokens, should be read with that memory pressure in mind, since it lengthened greedy prefill and decoding.
+
 **Longer drafts were not better.** At k=8 on longer generations acceptance fell to 51-62%, and throughput fell with it, because more drafted tokens were thrown away.
 
 ## Environment failures
