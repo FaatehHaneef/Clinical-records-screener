@@ -40,6 +40,12 @@ A running record of options considered, what was rejected, and what went wrong.
 
 **Causal masking skips about half the tiles.** Tiles above the diagonal are fully masked and never computed. At length 4096 with 256-token tiles, 120 of 256 tiles were skipped.
 
+## Speculative decoding
+
+**Draft on CPU made decoding about three times slower, even with high acceptance.** With the 1.5B target on the laptop GPU and the 0.5B draft on CPU, ten real screening prompts took 12.8 s with ordinary greedy decoding and about 40 s speculatively, at 85-95% acceptance. Tokens matched greedy decoding in every case. The target's own work fell sharply (verification took 3.4-6.0 s against 11.5 s of greedy decoding), but draft generation on CPU took 15-23 s and prefilling the CPU draft about 11 s more. Speculative decoding pays off only when drafting is much cheaper than target steps. The Kaggle run, with both models on the GPU, tests that condition.
+
+**Longer drafts were not better.** At k=8 on longer generations acceptance fell to 51-62%, and throughput fell with it, because more drafted tokens were thrown away.
+
 ## Environment failures
 
 **System PyTorch was CPU-only.** Found during the resource check. A project virtual environment now installs the CUDA 12.8 build.
