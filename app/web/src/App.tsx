@@ -1,13 +1,15 @@
+import { ClipboardCheck, FileText, House, ListChecks, ListOrdered, Search } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api, type Status } from './api';
+import { api, type Report, type Status } from './api';
+import AppDock, { type DockEntry } from './AppDock';
 import { CriteriaStep, NoteStep, Running, SentenceStep, type Draft } from './Flow';
 import Inspect from './Inspect';
 import LandingOrb from './LandingOrb';
 import { CriterionDetail, Results, type Screening } from './Results';
-import { ConfirmDialog, Notice, TopBar } from './shared';
+import { ConfirmDialog, Notice, PageHeader } from './shared';
 
-const EMPTY: Draft = { note: '', sentences: [], inclusion: '', exclusion: '', mode: 'cached' };
-const STEP_LABELS: Record<string, string> = { note: 'Step 1 of 3', sentences: 'Step 2 of 3', criteria: 'Step 3 of 3' };
+const EMPTY: Draft = { note: '', splitNote: '', sentences: [], inclusion: '', exclusion: '', mode: 'cached' };
+const STORAGE_KEY = 'crs-session';
 const readRoute = () => window.location.hash.replace(/^#\/?/, '');
 const go = (route: string) => {
   window.location.hash = `/${route}`;
@@ -15,12 +17,36 @@ const go = (route: string) => {
 const replace = (route: string) => window.location.replace(`#/${route}`);
 const splitLines = (text: string) => text.split('\n').map((line) => line.trim()).filter(Boolean);
 
+type Saved = { draft: Draft; jobId: string; reportId: string };
+
+function loadSaved(): Saved {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null');
+    if (saved) return { draft: { ...EMPTY, ...saved.draft }, jobId: saved.jobId ?? '', reportId: saved.reportId ?? '' };
+  } catch {
+    // Storage can be blocked or hold something unreadable. The app then starts empty.
+  }
+  return { draft: EMPTY, jobId: '', reportId: '' };
+}
+
+function store(saved: Saved) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  } catch {
+    // Without storage a refresh loses the work, and everything else still functions.
+  }
+}
+
+const toScreening = (report: Report): Screening => ({ overall: report.overall, results: report.results, reportId: report.id, sentences: report.patient_sentences.map((item) => item.text) });
+
 export default function App() {
+  const [saved] = useState(loadSaved);
   const [route, setRoute] = useState(readRoute);
   const [status, setStatus] = useState<Status | null>(null);
-  const [draft, setDraft] = useState<Draft>(EMPTY);
-  const [jobId, setJobId] = useState('');
+  const [draft, setDraft] = useState<Draft>(saved.draft);
+  const [jobId, setJobId] = useState(saved.jobId);
   const [screening, setScreening] = useState<Screening | null>(null);
+  const [restoring, setRestoring] = useState(Boolean(saved.reportId));
   const [failure, setFailure] = useState('');
   const [confirmHome, setConfirmHome] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
@@ -58,15 +84,34 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [route]);
 
-  // A refreshed or hand-typed address may point at a screen whose data no longer exists.
-  const detailIndex = route.startsWith('detail/') ? Number(route.slice(7)) : -1;
   useEffect(() => {
-    if (route === 'sentences' && !draft.sentences.length) replace('note');
-    if (route === 'criteria' && !draft.sentences.length) replace('note');
-    if (route === 'running' && !jobId) replace(draft.sentences.length ? 'criteria' : 'note');
+    if (!saved.reportId) return;
+    api.report(saved.reportId)
+      .then((report) => setScreening(toScreening(report)))
+      .catch(() => undefined)
+      .finally(() => setRestoring(false));
+  }, [saved.reportId]);
+
+  useEffect(() => {
+    if (!restoring) store({ draft, jobId, reportId: screening?.reportId ?? '' });
+  }, [restoring, draft, jobId, screening?.reportId]);
+
+  const stepsUnlocked = draft.sentences.length > 0 && draft.note === draft.splitNote;
+  const detailIndex = route.startsWith('detail/') ? Number(route.slice(7)) : -1;
+  const inspectIndex = route.startsWith('inspect/') ? Number(route.slice(8)) : -1;
+  const onInspect = route === 'inspect' || route.startsWith('inspect/');
+  const inResultsArea = route === 'results' || route.startsWith('detail/') || route.startsWith('inspect/');
+
+  // A refreshed or hand-typed address may point at a screen whose data no longer exists.
+  useEffect(() => {
+    // While a navigation is in flight the state already describes the next screen, so wait for it to land.
+    if (restoring || readRoute() !== route) return;
+    if ((route === 'sentences' || route === 'criteria') && !stepsUnlocked) replace('note');
+    if (route === 'running' && !jobId) replace(stepsUnlocked ? 'criteria' : 'note');
     if ((route === 'results' || route.startsWith('detail/')) && !screening) replace('note');
     if (route.startsWith('detail/') && screening && !(Number.isInteger(detailIndex) && screening.results[detailIndex])) replace('results');
-  }, [route, draft.sentences.length, jobId, screening, detailIndex]);
+    if (route.startsWith('inspect/') && !screening?.results[inspectIndex]) replace('inspect');
+  }, [restoring, route, stepsUnlocked, jobId, screening, detailIndex, inspectIndex]);
 
   const hasWork = Boolean(draft.note || draft.sentences.length || draft.inclusion || draft.exclusion || screening);
 
@@ -96,23 +141,21 @@ export default function App() {
   async function openReport(id: string) {
     try {
       const report = await api.report(id);
-      setScreening({ overall: report.overall, results: report.results, reportId: report.id, sentences: report.patient_sentences.map((item) => item.text) });
+      const opened = toScreening(report);
+      const note = opened.sentences.join(' ');
+      const criteria = (kind: string) => report.results.filter((item) => item.criterion_type === kind).map((item) => item.criterion).join('\n');
+      setScreening(opened);
+      update({ note, splitNote: note, sentences: opened.sentences, inclusion: criteria('inclusion'), exclusion: criteria('exclusion') });
       go('results');
     } catch (error) {
       setFailure((error as Error).message);
     }
   }
 
-  const inspectButton = (
-    <button type="button" className="btn" onClick={() => go('inspect')}>
-      Inspect
-    </button>
-  );
-
   let body = null;
   if (route === 'note') body = <NoteStep draft={draft} update={update} onNext={() => go('sentences')} />;
-  else if (route === 'sentences') body = <SentenceStep draft={draft} update={update} onBack={() => go('note')} onNext={() => go('criteria')} />;
-  else if (route === 'criteria') body = <CriteriaStep draft={draft} update={update} status={status} onBack={() => go('sentences')} onRun={startRun} />;
+  else if (route === 'sentences' && stepsUnlocked) body = <SentenceStep draft={draft} update={update} onBack={() => go('note')} onNext={() => go('criteria')} />;
+  else if (route === 'criteria' && stepsUnlocked) body = <CriteriaStep draft={draft} update={update} status={status} onBack={() => go('sentences')} onRun={startRun} />;
   else if (route === 'running' && jobId)
     body = (
       <Running
@@ -137,11 +180,27 @@ export default function App() {
         </button>
       </div>
     );
-  else if (route === 'results' && screening) body = <Results screening={screening} onOpen={(index) => go(`detail/${index}`)} onEdit={() => (draft.sentences.length ? go('criteria') : (update({ sentences: screening.sentences }), go('criteria')))} />;
+  else if (route === 'results' && screening) body = <Results screening={screening} onOpen={(index) => go(`detail/${index}`)} onEdit={() => go('criteria')} />;
   else if (route.startsWith('detail/') && screening?.results[detailIndex])
     body = <CriterionDetail screening={screening} index={detailIndex} onBack={() => go('results')} onMove={(index) => replace(`detail/${index}`)} />;
 
-  const firstResult = screening?.results[0];
+  const running = route === 'running';
+  const home: DockEntry = { id: 'home', label: 'Home', icon: House, onSelect: requestHome };
+  const entries: DockEntry[] = inResultsArea
+    ? [
+        home,
+        { id: 'results', label: 'Results', icon: ClipboardCheck, onSelect: () => go('results'), active: route === 'results' || route.startsWith('detail/') },
+        { id: 'inspect', label: 'Inspect this result', icon: Search, onSelect: () => go(`inspect/${Math.max(detailIndex, 0)}`), active: onInspect },
+      ]
+    : [
+        home,
+        { id: 'note', label: 'Patient note', icon: FileText, onSelect: () => go('note'), active: route === 'note', disabled: running },
+        { id: 'sentences', label: 'Sentences', icon: ListOrdered, onSelect: () => go('sentences'), active: route === 'sentences', disabled: running || !stepsUnlocked },
+        { id: 'criteria', label: 'Criteria', icon: ListChecks, onSelect: () => go('criteria'), active: route === 'criteria' || running || route === 'failed', disabled: running || !stepsUnlocked },
+        { id: 'inspect', label: 'Inspect', icon: Search, onSelect: () => go('inspect'), active: onInspect, disabled: running },
+      ];
+
+  const inspected = screening?.results[inspectIndex];
 
   return (
     <main ref={mainRef} tabIndex={-1} className="outline-none">
@@ -154,24 +213,28 @@ export default function App() {
           </button>
         </div>
       )}
-      {route === 'inspect' && (
+      {onInspect && !restoring && (
         <div className="screen min-h-dvh">
-          <TopBar onHome={requestHome} right={<button type="button" className="btn" onClick={() => window.history.back()}>Back</button>} />
+          <PageHeader status={status} />
           <Inspect
+            key={inspected ? screening?.reportId : 'flow'}
             status={status}
-            sentences={draft.sentences.length ? draft.sentences : screening?.sentences ?? []}
-            criterion={firstResult?.criterion ?? splitLines(draft.inclusion)[0] ?? ''}
-            criterionType={firstResult?.criterion_type ?? 'inclusion'}
+            sentences={inspected ? screening!.sentences : draft.sentences}
+            choices={inspected ? screening!.results : []}
+            startIndex={inspected ? inspectIndex : 0}
+            criterion={splitLines(draft.inclusion)[0] ?? splitLines(draft.exclusion)[0] ?? ''}
+            criterionType={splitLines(draft.inclusion).length || !splitLines(draft.exclusion).length ? 'inclusion' : 'exclusion'}
             onOpenReport={openReport}
           />
         </div>
       )}
-      {route !== '' && route !== 'inspect' && (
+      {route !== '' && !onInspect && (
         <div className="screen flex min-h-dvh flex-col">
-          <TopBar onHome={requestHome} center={STEP_LABELS[route]} right={route !== 'running' ? inspectButton : undefined} />
-          <div className={`flex flex-1 justify-center px-5 py-10 ${route === 'running' ? 'items-center' : 'items-start md:items-center'}`}>{body}</div>
+          <PageHeader status={status} />
+          <div className={`flex flex-1 justify-center px-5 pt-8 pb-32 ${running ? 'items-center' : 'items-start md:items-center'}`}>{body}</div>
         </div>
       )}
+      {route !== '' && <AppDock entries={entries} />}
       {confirmHome && (
         <ConfirmDialog
           title="Go to the home screen?"

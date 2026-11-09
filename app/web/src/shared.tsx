@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { Status } from './api';
 
 const MET = ['included', 'not excluded'];
 const FAILED = ['excluded', 'not included'];
@@ -25,24 +25,22 @@ export function Verdict({ label, className = '' }: { label: string; className?: 
   );
 }
 
-export function HomeButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button type="button" className="btn !p-2.5" onClick={onClick} aria-label="Home" title="Home">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M3 11.5 12 4l9 7.5" />
-        <path d="M5.5 9.8V20h13V9.8" />
-        <path d="M10 20v-5.5h4V20" />
-      </svg>
-    </button>
-  );
+function statusView(status: Status | null) {
+  if (!status) return { kind: 'unknown', text: 'Connecting' };
+  if (status.state === 'loading') return { kind: 'unknown', text: 'Model loading' };
+  if (status.state === 'failed') return { kind: 'failed', text: 'Model failed to load' };
+  return { kind: 'met', text: status.trained ? 'Model ready' : 'Untrained model ready' };
 }
 
-export function TopBar({ onHome, center, right }: { onHome: () => void; center?: ReactNode; right?: ReactNode }) {
+export function PageHeader({ status }: { status: Status | null }) {
+  const { kind, text } = statusView(status);
   return (
-    <header className="flex items-center justify-between gap-4 px-5 pt-5">
-      <HomeButton onClick={onHome} />
-      <p className="m-0 text-sm text-neutral-400 tabular-nums">{center}</p>
-      <div className="flex min-w-11 justify-end">{right}</div>
+    <header className="flex items-center justify-between gap-4 px-8 pt-7">
+      <p className="display m-0 text-xl font-medium tracking-wide">CRS</p>
+      <p className="m-0 inline-flex items-center gap-2 text-sm text-neutral-300" role="status">
+        <span className={`dot dot-${kind}`} aria-hidden="true" />
+        {text}
+      </p>
     </header>
   );
 }

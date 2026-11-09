@@ -5,6 +5,8 @@ import { Notice, StepFooter } from './shared';
 
 export type Draft = {
   note: string;
+  /** The exact note the current sentences were split from. */
+  splitNote: string;
   sentences: string[];
   inclusion: string;
   exclusion: string;
@@ -19,11 +21,16 @@ export function NoteStep({ draft, update, onNext }: { draft: Draft; update: (pat
   const [busy, setBusy] = useState(false);
 
   async function next() {
+    // An unchanged note keeps the sentences, including any edits made on the next screen.
+    if (draft.sentences.length && draft.note === draft.splitNote) {
+      onNext();
+      return;
+    }
     setBusy(true);
     setError('');
     try {
       const { sentences } = await api.sentences(draft.note);
-      update({ sentences });
+      update({ sentences, splitNote: draft.note });
       onNext();
     } catch (failure) {
       setError((failure as Error).message);

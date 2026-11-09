@@ -1,20 +1,20 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { api, waitForJob, type AttentionOutput, type DecodingOutput, type ReportSummary, type Status } from './api';
+import { api, waitForJob, type AttentionOutput, type CriterionResult, type DecodingOutput, type ReportSummary, type Status } from './api';
 import { Notice } from './shared';
 
-const SECTIONS = [
+const TABS = [
   ['decoding', 'Decoding'],
   ['attention', 'Attention'],
-  ['model', 'Model'],
   ['reports', 'Reports'],
+  ['model', 'Model'],
 ] as const;
 
 const MODE_NAMES: Record<string, string> = { uncached: 'No cache (reference)', cached: 'KV cache', speculative: 'Speculative' };
 const number = (value: number | null | undefined, digits = 2) => (value == null ? 'n/a' : value.toFixed(digits));
 
-function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+function Panel({ id, tab, title, children }: { id: string; tab: string; title: string; children: ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-6">
+    <section id={`panel-${id}`} role="tabpanel" aria-labelledby={`tab-${id}`} hidden={tab !== id}>
       <h2 className="m-0 mb-4 text-2xl font-medium">{title}</h2>
       {children}
     </section>
@@ -42,16 +42,48 @@ function Bars({ title, unit, rows }: { title: string; unit: string; rows: Array<
   );
 }
 
-function DecodingLab({ sentences, criterion, criterionType }: { sentences: string[]; criterion: string; criterionType: string }) {
-  const [text, setText] = useState(criterion);
-  const [kind, setKind] = useState(criterionType);
+type Choice = Pick<CriterionResult, 'criterion' | 'criterion_type'>;
+type LabProps = { ready: boolean; sentences: string[]; choices: Choice[]; startIndex: number; criterion: string; criterionType: string };
+
+function DecodingLab({ ready, sentences, choices, startIndex, criterion, criterionType }: LabProps) {
+  const start = choices[startIndex];
+  const [picked, setPicked] = useState(startIndex);
+  const [text, setText] = useState(start?.criterion ?? criterion);
+  const [kind, setKind] = useState<string>(start?.criterion_type ?? criterionType);
   const [note, setNote] = useState(sentences.join('\n'));
+  const [usingExample, setUsingExample] = useState(false);
   const [limit, setLimit] = useState(64);
   const [draftLength, setDraftLength] = useState(4);
   const [ignoreEos, setIgnoreEos] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState('');
   const [output, setOutput] = useState<DecodingOutput | null>(null);
+
+  useEffect(() => {
+    if (sentences.length || start || criterion) return;
+    let active = true;
+    api.example()
+      .then(async (example) => {
+        const split = await api.sentences(example.note);
+        if (!active) return;
+        setNote(split.sentences.join('\n'));
+        setText(example.inclusion[0] ?? '');
+        setKind('inclusion');
+        setUsingExample(true);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  function pick(index: number) {
+    setPicked(index);
+    setText(choices[index].criterion);
+    setKind(choices[index].criterion_type);
+  }
+
+  const blocked = !ready ? 'Waiting for the model to load.' : !note.trim() || !text.trim() ? 'Add patient sentences and a criterion to run this comparison.' : '';
 
   async function run() {
     setRunning(true);
@@ -72,6 +104,19 @@ function DecodingLab({ sentences, criterion, criterionType }: { sentences: strin
   return (
     <div className="flex flex-col gap-5">
       <div className="card flex flex-col gap-4 p-5">
+        {usingExample && <p className="m-0 text-sm text-neutral-300">Showing a made-up example, since there is no screening yet. You can edit it.</p>}
+        {choices.length > 0 && (
+          <label className="flex flex-col gap-2 text-neutral-300">
+            Criterion from this result
+            <select className="field" value={picked} onChange={(event) => pick(Number(event.target.value))}>
+              {choices.map((choice, index) => (
+                <option key={index} value={index}>
+                  {index + 1}. {choice.criterion.length > 90 ? `${choice.criterion.slice(0, 90)}...` : choice.criterion}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="flex flex-col gap-2 text-neutral-300">
           Patient sentences, one per line
           <textarea className="field min-h-28" value={note} onChange={(event) => setNote(event.target.value)} />
@@ -111,9 +156,12 @@ function DecodingLab({ sentences, criterion, criterionType }: { sentences: strin
             Generate the full length
           </label>
         </div>
-        <button type="button" className="btn btn-primary self-start" disabled={running || !note.trim() || !text.trim()} onClick={run}>
-          {running ? 'Running...' : 'Run comparison'}
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button type="button" className="btn btn-primary" disabled={running || Boolean(blocked)} onClick={run}>
+            {running ? 'Running...' : 'Run comparison'}
+          </button>
+          {blocked && <span className="text-sm text-neutral-300">{blocked}</span>}
+        </div>
       </div>
       {error && <Notice message={error} />}
       {output && (
@@ -283,28 +331,33 @@ function Reports({ onOpen }: { onOpen: (id: string) => void }) {
   );
 }
 
-export default function Inspect({ status, sentences, criterion, criterionType, onOpenReport }: { status: Status | null; sentences: string[]; criterion: string; criterionType: string; onOpenReport: (id: string) => void }) {
+export default function Inspect({ status, onOpenReport, ...lab }: Omit<LabProps, 'ready'> & { status: Status | null; onOpenReport: (id: string) => void }) {
   const ready = status?.state === 'ready';
+  const [tab, setTab] = useState<(typeof TABS)[number][0]>('decoding');
   return (
-    <div className="flex w-full flex-col gap-10 px-8 pt-4 pb-20 lg:px-12">
+    <div className="flex w-full flex-col gap-8 px-8 pt-6 pb-36 lg:px-12">
       <div>
         <h1 className="glow-text m-0 text-4xl font-medium">Inspect</h1>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {SECTIONS.map(([id, label]) => (
-            <a key={id} href={`#/inspect`} className="btn text-sm no-underline" onClick={(event) => { event.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); }}>
+        <div className="mt-5 flex flex-wrap gap-2" role="tablist" aria-label="Inspect sections">
+          {TABS.map(([id, label]) => (
+            <button key={id} type="button" role="tab" id={`tab-${id}`} aria-selected={tab === id} aria-controls={`panel-${id}`} className={`btn text-sm ${tab === id ? 'btn-primary' : ''}`} onClick={() => setTab(id)}>
               {label}
-            </a>
+            </button>
           ))}
         </div>
       </div>
-      {!ready && <Notice message={status?.state === 'failed' ? status.error ?? 'The model failed to load.' : 'The model is still loading. Comparisons will be available shortly.'} />}
-      <Section id="decoding" title="Decoding comparison">
-        <DecodingLab sentences={sentences} criterion={criterion} criterionType={criterionType} />
-      </Section>
-      <Section id="attention" title="Attention comparison">
+      {status?.state === 'failed' && <Notice message={status.error ?? 'The model failed to load.'} />}
+      {/* Panels stay mounted, so a finished comparison is still there after switching tabs. */}
+      <Panel id="decoding" tab={tab} title="Decoding comparison">
+        <DecodingLab ready={ready} {...lab} />
+      </Panel>
+      <Panel id="attention" tab={tab} title="Attention comparison">
         <AttentionLab />
-      </Section>
-      <Section id="model" title="Model">
+      </Panel>
+      <Panel id="reports" tab={tab} title="Saved reports">
+        <Reports onOpen={onOpenReport} />
+      </Panel>
+      <Panel id="model" tab={tab} title="Model">
         {status && (
           <div className="card p-5">
             <table>
@@ -326,10 +379,7 @@ export default function Inspect({ status, sentences, criterion, criterionType, o
             </table>
           </div>
         )}
-      </Section>
-      <Section id="reports" title="Reports">
-        <Reports onOpen={onOpenReport} />
-      </Section>
+      </Panel>
     </div>
   );
 }
