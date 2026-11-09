@@ -91,7 +91,10 @@ def validate_mode(mode):
 
 def build_record(index, criterion_type, criterion, verified, sentences, timing):
     """One criterion's complete result, traceable to the note's original sentence IDs."""
-    if verified.valid:
+    if verified.valid and verified.label == NOT_APPLICABLE and not verified.evidence:
+        # Not applicable needs no citation, so the uncited wording about review would be wrong here.
+        explanation = "The model marked this criterion as not applicable and cited no sentence."
+    elif verified.valid:
         explanation = explain(verified.label, verified.evidence, sentences)
     else:
         explanation = "The model output could not be verified, so no verdict is reported."
@@ -118,6 +121,40 @@ def build_record(index, criterion_type, criterion, verified, sentences, timing):
     }
 
 
+def _counted(count, singular, plural):
+    return f"{count} {singular if count == 1 else plural}"
+
+
+def overall_reason(records):
+    """One sentence saying why this patient received their outcome, built from the same rule."""
+    failed = sum(r["label"] in FAILED and bool(r["evidence_ids"]) for r in records)
+    if failed:
+        return f"{_counted(failed, 'criterion', 'criteria')} failed with cited evidence."
+    unknown = sum(r["label"] == UNKNOWN for r in records)
+    uncited = sum(r["unconfirmed"] and r["label"] != UNKNOWN for r in records)
+    unverified = sum(r["label"] == INVALID for r in records)
+    parts = []
+    if unknown:
+        parts.append(f"{_counted(unknown, 'criterion has', 'criteria have')} too little information in the note")
+    if uncited:
+        parts.append(f"{_counted(uncited, 'verdict cites', 'verdicts cite')} no sentence")
+    if unverified:
+        parts.append(f"{_counted(unverified, 'output', 'outputs')} could not be verified")
+    if parts:
+        joined = parts[0] if len(parts) == 1 else f"{', '.join(parts[:-1])} and {parts[-1]}"
+        return f"{joined}."
+    if not any(r["label"] in MET for r in records):
+        return "None of the criteria applied to this patient."
+    return "Every applicable criterion was met with cited evidence."
+
+
+def missing_to_show(record):
+    """Missing-information notes that say something the explanation has not already said."""
+    if record["label"] == UNKNOWN and record["evidence_ids"]:
+        return []
+    return [text for text in record["missing_information"] if text not in record["explanation"]]
+
+
 def overall_result(records):
     """Apply the stated rule. A failure with no cited evidence cannot make a patient ineligible."""
     counts = {
@@ -134,7 +171,7 @@ def overall_result(records):
         outcome = "Needs review"
     else:
         outcome = "Potentially eligible"
-    return {"outcome": outcome, "preliminary": True, "counts": counts, "rule": OVERALL_RULE}
+    return {"outcome": outcome, "reason": overall_reason(records), "preliminary": True, "counts": counts, "rule": OVERALL_RULE}
 
 
 def build_report(report_id, sentences, records, mode, provenance):

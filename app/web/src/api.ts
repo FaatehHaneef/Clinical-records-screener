@@ -31,6 +31,8 @@ export type CriterionResult = {
 
 export type Overall = {
   outcome: string;
+  /** Absent on reports saved before reasons were added. */
+  reason?: string;
   preliminary: boolean;
   counts: Record<string, number>;
   rule: string;

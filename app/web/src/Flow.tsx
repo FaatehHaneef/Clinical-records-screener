@@ -1,3 +1,4 @@
+import { Combine, Plus, Scissors, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { ThinkingOrb } from 'thinking-orbs';
 import { api, waitForJob, type Status } from './api';
@@ -92,8 +93,29 @@ export function NoteStep({ draft, update, onNext }: { draft: Draft; update: (pat
 
 export function SentenceStep({ draft, update, onBack, onNext }: { draft: Draft; update: (patch: Partial<Draft>) => void; onBack: () => void; onNext: () => void }) {
   const [error, setError] = useState('');
-  const change = (index: number, text: string) => update({ sentences: draft.sentences.map((value, i) => (i === index ? text : value)) });
-  const remove = (index: number) => update({ sentences: draft.sentences.filter((_, i) => i !== index) });
+  const inputs = useRef<Array<HTMLInputElement | null>>([]);
+  const { sentences } = draft;
+  const change = (index: number, text: string) => update({ sentences: sentences.map((value, i) => (i === index ? text : value)) });
+  const remove = (index: number) => update({ sentences: sentences.filter((_, i) => i !== index) });
+  const add = () => update({ sentences: [...sentences, ''] });
+
+  function mergeWithNext(index: number) {
+    const merged = `${sentences[index].trim()} ${sentences[index + 1].trim()}`.trim();
+    update({ sentences: [...sentences.slice(0, index), merged, ...sentences.slice(index + 2)] });
+    setError('');
+  }
+
+  function split(index: number) {
+    const text = sentences[index];
+    const at = inputs.current[index]?.selectionStart ?? 0;
+    const [left, right] = [text.slice(0, at).trim(), text.slice(at).trim()];
+    if (!left || !right) {
+      setError(`Click inside sentence ${index} where it should split, then press split.`);
+      return;
+    }
+    update({ sentences: [...sentences.slice(0, index), left, right, ...sentences.slice(index + 1)] });
+    setError('');
+  }
 
   function next() {
     if (!draft.sentences.length || draft.sentences.some((sentence) => !sentence.trim())) {
@@ -108,19 +130,31 @@ export function SentenceStep({ draft, update, onBack, onNext }: { draft: Draft; 
     <div className="flex w-full max-w-3xl flex-col gap-5">
       <div>
         <h1 className="glow-text m-0 text-3xl font-medium">Review sentences</h1>
-        <p className="m-0 mt-2 text-neutral-400">Each verdict will cite these numbers.</p>
+        <p className="m-0 mt-2 text-neutral-400">Each verdict will cite these numbers. Fix any sentence that was cut in the wrong place.</p>
       </div>
-      <ol className="card m-0 flex list-none flex-col gap-2 p-4">
-        {draft.sentences.map((sentence, index) => (
-          <li key={index} className="flex items-center gap-3">
-            <span className="mono w-7 shrink-0 text-right text-neutral-400">{index}</span>
-            <input className="field !py-2" value={sentence} onChange={(event) => change(index, event.target.value)} aria-label={`Sentence ${index}`} />
-            <button type="button" className="btn !px-3 !py-1.5 text-sm" onClick={() => remove(index)} aria-label={`Remove sentence ${index}`}>
-              Remove
-            </button>
-          </li>
-        ))}
-      </ol>
+      <div className="card flex flex-col gap-2 p-4">
+        <ol className="m-0 flex list-none flex-col gap-2 p-0">
+          {sentences.map((sentence, index) => (
+            <li key={index} className="flex items-center gap-2">
+              <span className="mono w-7 shrink-0 text-right text-neutral-400">{index}</span>
+              <input ref={(element) => { inputs.current[index] = element; }} className="field !py-2" value={sentence} onChange={(event) => change(index, event.target.value)} aria-label={`Sentence ${index}`} />
+              <button type="button" className="icon-btn" onClick={() => split(index)} aria-label={`Split sentence ${index} at the cursor`} title="Split at the cursor">
+                <Scissors size={16} aria-hidden="true" />
+              </button>
+              <button type="button" className="icon-btn" disabled={index === sentences.length - 1} onClick={() => mergeWithNext(index)} aria-label={`Merge sentence ${index} with the next one`} title="Merge with the next sentence">
+                <Combine size={16} aria-hidden="true" />
+              </button>
+              <button type="button" className="icon-btn" onClick={() => remove(index)} aria-label={`Remove sentence ${index}`} title="Remove">
+                <Trash2 size={16} aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ol>
+        <button type="button" className="btn mt-1 inline-flex items-center gap-2 self-start text-sm" onClick={add}>
+          <Plus size={16} aria-hidden="true" />
+          Add sentence
+        </button>
+      </div>
       {error && <Notice message={error} />}
       <StepFooter onBack={onBack} nextLabel="Continue" onNext={next} />
     </div>
@@ -203,9 +237,10 @@ export function CriteriaStep({ draft, update, status, onBack, onRun }: { draft: 
               </option>
             ))}
           </select>
+          {draft.mode === 'speculative' && <span className="text-sm text-neutral-400">Gives the same output as the KV cache. It was slower in our benchmarks on this hardware.</span>}
         </label>
       </div>
-      {message && <p className="m-0 text-sm text-neutral-300">{message}</p>}
+      {message &&<p className="m-0 text-sm text-neutral-300">{message}</p>}
       {statusText && <p className="m-0 text-sm text-neutral-400">{statusText}</p>}
       {error && <Notice message={error} />}
       <StepFooter onBack={onBack} nextLabel={busy ? 'Starting...' : 'Run screening'} onNext={run} nextDisabled={busy || !ready} />

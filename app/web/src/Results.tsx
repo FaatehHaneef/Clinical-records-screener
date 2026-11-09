@@ -29,27 +29,8 @@ export function Results({ screening, onOpen, onEdit }: { screening: Screening; o
         <p className="m-0 text-sm tracking-wide text-neutral-400 uppercase">Overall · preliminary</p>
         <h1 className="glow-text m-0 mt-2 text-6xl font-medium">{overall.outcome}</h1>
         <p className="m-0 mt-3 text-lg text-neutral-300 tabular-nums">{countLine(overall.counts)}</p>
-        {overall.counts.no_evidence > 0 && (
-          <p className="m-0 mt-1 text-sm text-neutral-400 tabular-nums">{overall.counts.no_evidence} with no cited evidence</p>
-        )}
+        {overall.reason && <p className="m-0 mt-1 text-neutral-300">{overall.reason}</p>}
       </div>
-      <div className="card w-full overflow-hidden">
-        {results.map((result) => (
-          <button key={result.index} type="button" className="row-link flex items-center justify-between gap-5 px-5 py-3.5" onClick={() => onOpen(result.index)}>
-            <span className="min-w-0">
-              <span className="block text-xs text-neutral-400 uppercase">{result.criterion_type}</span>
-              <span className="block">{result.criterion}</span>
-            </span>
-            <span className="flex shrink-0 flex-col items-end gap-0.5">
-              <Verdict label={result.label} />
-              <span className="text-xs text-neutral-500 tabular-nums">
-                {result.evidence_ids.length ? `${result.evidence_ids.length} cited` : 'none cited'}
-              </span>
-            </span>
-          </button>
-        ))}
-      </div>
-      <p className="m-0 max-w-2xl text-center text-sm leading-relaxed text-neutral-500">{overall.rule}</p>
       <div className="flex flex-wrap justify-center gap-3">
         <button type="button" className="btn" onClick={onEdit}>
           Edit criteria
@@ -61,6 +42,23 @@ export function Results({ screening, onOpen, onEdit }: { screening: Screening; o
           Download JSON
         </a>
       </div>
+      <div className="card w-full overflow-hidden">
+        {results.map((result) => (
+          <button key={result.index} type="button" className="row-link flex items-center justify-between gap-5 px-5 py-3.5" onClick={() => onOpen(result.index)}>
+            <span className="min-w-0">
+              <span className="block text-xs text-neutral-400 uppercase">{result.criterion_type}</span>
+              <span className="block">{result.criterion}</span>
+            </span>
+            <span className="flex shrink-0 flex-col items-end gap-0.5">
+              <Verdict label={result.label} />
+              <span className="text-xs text-neutral-400 tabular-nums">
+                {result.evidence_ids.length ? `${result.evidence_ids.length} cited` : 'none cited'}
+              </span>
+            </span>
+          </button>
+        ))}
+      </div>
+      <p className="m-0 max-w-2xl text-center text-sm leading-relaxed text-neutral-400">{overall.rule}</p>
     </div>
   );
 }
@@ -90,6 +88,8 @@ export function CriterionDetail({ screening, index, onBack, onMove }: { screenin
   const result = screening.results[index];
   const cited = new Set(result.evidence_ids);
   const total = screening.results.length;
+  // When the explanation already says it, repeating it in a second box adds nothing.
+  const missing = result.missing_information.filter((text) => !result.explanation.includes(text) && !(result.label === 'not enough information' && result.evidence_ids.length));
   return (
     <div className="flex w-full max-w-3xl flex-col gap-6">
       <div>
@@ -100,9 +100,9 @@ export function CriterionDetail({ screening, index, onBack, onMove }: { screenin
         <Verdict label={result.label} className="glow-text mt-3 text-3xl" />
       </div>
       <p className="m-0 leading-relaxed text-neutral-200">{result.explanation}</p>
-      {result.missing_information.length > 0 && (
+      {missing.length > 0 && (
         <Detail title="Missing information">
-          {result.missing_information.map((text) => (
+          {missing.map((text) => (
             <Notice key={text} message={text} />
           ))}
         </Detail>

@@ -9,6 +9,7 @@ from app.pipeline import (
     NOTICE,
     InputError,
     build_record,
+    missing_to_show,
     overall_result,
     parse_eligibility,
     render_report_html,
@@ -244,3 +245,27 @@ def test_frontend_fallback_and_static_path_safety(tmp_path):
     assert client.get("/results").text == "<p>app</p>"
     assert "nope" not in client.get("/%2e%2e/secret.txt").text
     assert client.get("/api/unknown").status_code == 404
+
+
+def test_reason_names_each_problem_without_double_counting():
+    records = [record("not enough information", "[]"), record("not excluded", "[]", "exclusion"), record("included", "[0]")]
+    assert overall_result(records)["reason"] == "1 criterion has too little information in the note and 1 verdict cites no sentence."
+
+
+def test_reason_for_a_cited_failure():
+    assert overall_result([record("not included", "[0]")])["reason"] == "1 criterion failed with cited evidence."
+
+
+def test_reason_for_a_clean_pass_and_for_nothing_applicable():
+    assert overall_result([record("included", "[0]")])["reason"] == "Every applicable criterion was met with cited evidence."
+    assert overall_result([record("not applicable", "[]")])["reason"] == "None of the criteria applied to this patient."
+
+
+def test_uncited_not_applicable_does_not_ask_for_review():
+    assert "review" not in record("not applicable", "[]")["explanation"]
+
+
+def test_missing_information_is_not_repeated():
+    assert missing_to_show(record("not enough information", "[0]")) == []
+    assert missing_to_show(record("not enough information", "[]")) == ["The note does not contain enough to settle this criterion."]
+    assert missing_to_show(record("not excluded", "[]", "exclusion")) == []
