@@ -86,7 +86,7 @@ start_app.bat         double-click launcher
 | R6 | Best config on Qwen2.5-0.5B | Fine-tuned draft for Task 5 |
 
   Done when: best checkpoint is chosen by validation macro-F1, with evidence F1 as tie-break, and curves and logs are committed.
-- [ ] **2.7 Publish adapter.** `[YOU]` create a Hugging Face write token. Upload adapters and add `scripts/fetch_adapter.py`.
+- [x] **2.7 Publish adapter.** `[YOU]` create a Hugging Face write token. Upload adapters and add `scripts/fetch_adapter.py`.
   Done when: a fresh download loads and reproduces one known validation output.
 
 ## Phase 3: Evaluation and verification (C1, C2, C3, B4)
@@ -128,7 +128,7 @@ start_app.bat         double-click launcher
 
 ## Phase 7: Final runs on Kaggle (B4, C1, C2, C3, D3, E3, F3)
 
-- [ ] **7.1 Freeze.** Commit the chosen configuration before opening the test set. Tag it `final-config`.
+- [x] **7.1 Freeze.** Commit the chosen configuration before opening the test set. Tag it `final-config`.
 - [ ] **7.2 `[YOU]` Run `kaggle/final_eval_and_benchmarks.ipynb`.** Before/after evaluation on identical validation and test examples, all baselines, then all three benchmarks.
 - [ ] **7.4 Optional large-target benchmark.** `kaggle/optional_large_target.ipynb` runs the untrained Qwen2.5-7B target with 0.5B and 1.5B drafts on two T4 GPUs. It is separate from the main results and needs no training outputs.
 - [ ] **7.3 Commit outputs.** Metrics, predictions and logs go to `results/`. No model, prompt or threshold changes after this point.
