@@ -130,7 +130,6 @@ start_app.bat         double-click launcher
 
 - [x] **7.1 Freeze.** Commit the chosen configuration before opening the test set. Tag it `final-config`.
 - [x] **7.2 `[YOU]` Run `kaggle/final_eval_and_benchmarks.ipynb`.** Before/after evaluation on identical validation and test examples, all baselines, then all three benchmarks.
-- [ ] **7.4 Optional large-target benchmark.** `kaggle/optional_large_target.ipynb` runs the untrained Qwen2.5-7B target with 0.5B and 1.5B drafts on two T4 GPUs. It is separate from the main results and needs no training outputs.
 - [x] **7.3 Commit outputs.** Metrics, predictions and logs go to `results/`. No model, prompt or threshold changes after this point.
 
 ## Phase 8: Error analysis (C4)
