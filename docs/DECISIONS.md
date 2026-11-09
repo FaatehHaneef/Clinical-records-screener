@@ -48,6 +48,14 @@ A running record of options considered, what was rejected, and what went wrong.
 
 **Longer drafts were not better.** At k=8 on longer generations acceptance fell to 51-62%, and throughput fell with it, because more drafted tokens were thrown away.
 
+## Application
+
+**The overall result never treats missing evidence as proof.** A patient is "likely ineligible" only if a criterion failed with cited evidence. A failure with no cited sentence becomes "needs review", as does anything unknown, unverified or uncited. This makes "needs review" common, because experts often labeled "not excluded" without citing evidence, but the assignment forbids treating absence as proof either way.
+
+**Vercel was rejected.** It has no GPU and its serverless functions cannot keep a 3 GB model loaded. The assignment accepts a locally hosted browser application, which also keeps the live benchmark on real hardware and works offline.
+
+**MLflow was not used.** CSV and JSON logs with pinned configurations already meet the logging and reproducibility requirements, and it would add a dependency with no assessed benefit.
+
 ## Environment failures
 
 **System PyTorch was CPU-only.** Found during the resource check. A project virtual environment now installs the CUDA 12.8 build.

@@ -144,7 +144,7 @@ Design: minimal, futuristic, simple dark theme. A landing page with motion compo
 
 | Screen | Purpose |
 |---|---|
-| Landing | Introduction, prototype notice, start button |
+| Landing | Orb, name and start button only |
 | 1. Patient note | Paste or upload, with validation |
 | 2. Sentence review | Confirm the numbered sentences evidence will cite |
 | 3. Trial criteria | Enter inclusion and exclusion criteria, load an example or a trial ID |
@@ -154,10 +154,10 @@ Design: minimal, futuristic, simple dark theme. A landing page with motion compo
 | Inference Lab | Live decoding and attention comparison |
 | Reports | Saved screenings, with HTML and JSON download |
 
-Frontend: React with Vite, so 21st.dev components work directly. The built files are committed and served by FastAPI, so running the app needs no Node. MLflow is not used; CSV and JSON logs meet the logging requirement.
+Frontend: React, Vite, Tailwind and the `thinking-orbs` package, with bundled fonts so it works offline. Styled after the owner's earlier app: black background, soft center glow, glass pill buttons, thin cards. Home on every screen, Back and Continue through the steps, and browser navigation supported. The built files are committed and served by FastAPI, so running the app needs no Node. MLflow is not used; CSV and JSON logs meet the logging requirement.
 
-- [ ] **9.1 Backend.** FastAPI with the screening pipeline, status endpoint, single-job queue and per-criterion progress updates. Uses our own decoders.
-- [ ] **9.2 Memory strategy.** Target at float16 on GPU, matching the evaluated model. Draft on GPU if it fits, otherwise CPU. Catch out-of-memory errors and show a clear message.
+- [x] **9.1 Backend.** FastAPI with the screening pipeline, status endpoint, single-job queue and per-criterion progress updates. Uses our own decoders.
+- [x] **9.2 Memory strategy.** Target at float16 on GPU, matching the evaluated model. Draft on GPU if it fits, otherwise CPU. Catch out-of-memory errors and show a clear message.
 - [ ] **9.3 Launcher.** `start_app.bat`: double-click, check environment and weights, start the server, open the browser, show a loading screen.
 - [ ] **9.4 Screening flow.** Paste or upload a note, review numbered sentences, enter inclusion and exclusion criteria, or load an example or a ClinicalTrials.gov ID.
 - [ ] **9.5 Results.** A card for each criterion showing label, cited sentence IDs, evidence highlighted in the note, explanation, and a missing-information panel.
@@ -165,7 +165,7 @@ Frontend: React with Vite, so 21st.dev components work directly. The built files
 - [ ] **9.7 Benchmark view.** Run uncached, cached and speculative decoding live on the current input, showing timings, tokens/s, memory, token equality and acceptance rate. Run reference against tiled attention live and show error and time.
 - [ ] **9.8 Validation and recovery.** Empty note, oversized note with a visible warning and no silent truncation, missing criteria, bad file, bad trial ID, network failure, GPU out of memory.
 - [ ] **9.9 Export.** Downloadable HTML and JSON report with provenance: model and adapter revision, decoding mode, time and input hash. Saved in `reports/`.
-- [ ] **9.10 Notice.** "Educational screening prototype, not a clinical enrollment decision" on every view and report.
+- [ ] **9.10 Notice.** "Educational screening prototype, not a clinical enrollment decision" appears in every exported report.
 - [ ] **9.11 Rehearsal.** Fresh start from the launcher with unseen notes on the laptop. Fix anything found.
 
 ## Phase 10: Paper (A1, A2, A3, H1)
