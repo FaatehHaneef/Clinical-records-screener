@@ -12,12 +12,12 @@ from app.pipeline import (
     missing_to_show,
     overall_result,
     parse_eligibility,
-    render_report_html,
     build_report,
     split_note,
     validate_criteria,
     validate_note,
 )
+from app.report import render_report_html
 from app.server import create_app
 from screener.eval.verifier import verify_output
 
@@ -269,3 +269,36 @@ def test_missing_information_is_not_repeated():
     assert missing_to_show(record("not enough information", "[0]")) == []
     assert missing_to_show(record("not enough information", "[]")) == ["The note does not contain enough to settle this criterion."]
     assert missing_to_show(record("not excluded", "[]", "exclusion")) == []
+
+
+def full_report():
+    records = [record("included", "[0]"), record("not excluded", "[]", "exclusion", 1)]
+    return build_report("a" * 32, NOTE, records, "cached", {"target_model": "m"})
+
+
+def test_report_is_sectioned_and_states_the_reason():
+    html = render_report_html(full_report())
+    for text in ("Inclusion criteria", "Exclusion criteria", "Patient note", "Target model", "1 verdict cites no sentence."):
+        assert text in html
+
+
+def test_report_is_self_contained():
+    html = render_report_html(full_report())
+    assert "font/woff2;base64," in html
+    assert "http://" not in html and "https://" not in html and "<script" not in html
+
+
+def test_report_marks_only_cited_sentences_and_does_not_repeat_quotes():
+    html = render_report_html(full_report())
+    assert html.count("<li class=cited>") == 1 and "Cited sentences:" not in html
+
+
+def test_reports_saved_before_reasons_still_render():
+    report = full_report()
+    del report["overall"]["reason"]
+    assert "1 verdict cites no sentence." in render_report_html(report)
+
+
+def test_report_omits_an_empty_group():
+    report = build_report("a" * 32, NOTE, [record("included", "[0]")], "cached", {})
+    assert "Exclusion criteria" not in render_report_html(report)

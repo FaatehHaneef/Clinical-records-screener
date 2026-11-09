@@ -1,6 +1,5 @@
 """Application logic with no model dependency: validation, result records, overall rule and reports."""
 import hashlib
-import html
 import re
 from datetime import datetime, timezone
 
@@ -185,33 +184,6 @@ def build_report(report_id, sentences, records, mode, provenance):
         "overall": overall_result(records),
         "results": records,
     }
-
-
-def render_report_html(report):
-    """A self-contained, printable report. All values are escaped."""
-    e = lambda value: html.escape(str(value))
-    rows = []
-    for record in report["results"]:
-        evidence = "".join(f"<li>[{e(item['id'])}] {e(item['text'])}</li>" for item in record["evidence"]) or "<li>No sentence cited.</li>"
-        missing = "".join(f"<p class='m'>{e(text)}</p>" for text in record["missing_information"])
-        rows.append(
-            f"<section><h3>{e(record['criterion_type'].title())}: {e(record['criterion'])}</h3>"
-            f"<p class='v'>{e(record['label'].replace('__invalid__', 'unverified output'))}</p>"
-            f"<ul>{evidence}</ul><p>{e(record['explanation'])}</p>{missing}</section>"
-        )
-    sentences = "".join(f"<li value='{e(s['id'])}'>{e(s['text'])}</li>" for s in report["patient_sentences"])
-    provenance = "".join(f"<tr><th>{e(k)}</th><td>{e(v)}</td></tr>" for k, v in report["provenance"].items())
-    counts = ", ".join(f"{e(k.replace('_', ' '))}: {e(v)}" for k, v in report["overall"]["counts"].items())
-    return f"""<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>CRS report {e(report['id'])}</title>
-<style>body{{font:15px/1.5 system-ui,sans-serif;max-width:50rem;margin:2rem auto;padding:0 1rem;color:#111}}
-.notice{{border:1px solid #111;padding:.6rem .9rem;font-weight:600}}section{{border-top:1px solid #ccc;padding:.6rem 0}}
-.v{{font-weight:600}}.m{{color:#555}}table{{border-collapse:collapse}}th{{text-align:left;padding-right:1rem;font-weight:500}}</style></head>
-<body><h1>CRS eligibility screening report</h1><p class="notice">{e(report['notice'])}</p>
-<h2>Overall (preliminary): {e(report['overall']['outcome'])}</h2><p>{counts}</p><p>{e(report['overall']['rule'])}</p>
-<h2>Criteria</h2>{''.join(rows)}<h2>Patient note</h2><ol start="0">{sentences}</ol>
-<h2>Provenance</h2><table><tr><th>report</th><td>{e(report['id'])}</td></tr><tr><th>created (UTC)</th><td>{e(report['created_utc'])}</td></tr>{provenance}</table>
-</body></html>"""
 
 
 _HEADER = re.compile(r"^\s*(inclusion|exclusion)\s+criteria\s*:?\s*$", re.IGNORECASE)

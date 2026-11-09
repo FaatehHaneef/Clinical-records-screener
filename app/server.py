@@ -21,12 +21,12 @@ from app.pipeline import (
     build_report,
     overall_result,
     parse_eligibility,
-    render_report_html,
     split_note,
     validate_criteria,
     validate_mode,
     validate_sentences,
 )
+from app.report import render_report_html
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REPORTS = ROOT / "reports"
