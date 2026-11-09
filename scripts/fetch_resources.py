@@ -89,7 +89,20 @@ def fetch_nltk(lock):
     print("nltk ok: punkt_tab", flush=True)
 
 
+def fetch_models_from_lock():
+    """Download only the models, at the revisions already recorded. Used on Kaggle."""
+    lock = json.loads(LOCK.read_text(encoding="utf-8"))
+    for repo_id, entry in lock["models"].items():
+        snapshot_download(
+            repo_id, revision=entry["revision"], local_dir=ROOT / entry["path"], ignore_patterns=SKIP_PATTERNS
+        )
+        print(f"hub ok: {repo_id} @ {entry['revision']}", flush=True)
+
+
 def main():
+    if "--models-from-lock" in sys.argv:
+        fetch_models_from_lock()
+        return
     lock = {"dataset": {}, "models": {}, "papers": {}, "nltk": {}}
     api = HfApi()
     fetch_hub(api, DATASET[0], DATASET[1], "dataset", lock["dataset"])
