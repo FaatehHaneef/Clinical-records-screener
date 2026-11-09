@@ -1,4 +1,5 @@
 """API tests with a stand-in engine, so no GPU or model is needed."""
+import json
 import time
 
 import httpx
@@ -17,6 +18,7 @@ from app.pipeline import (
     validate_criteria,
     validate_note,
 )
+from app.engine import ROOT, pinned_versions
 from app.report import render_report_html
 from app.server import create_app
 from screener.eval.verifier import verify_output
@@ -302,3 +304,14 @@ def test_reports_saved_before_reasons_still_render():
 def test_report_omits_an_empty_group():
     report = build_report("a" * 32, NOTE, [record("included", "[0]")], "cached", {})
     assert "Exclusion criteria" not in render_report_html(report)
+
+
+def test_reports_record_exact_model_and_adapter_versions():
+    lock = json.loads((ROOT / "adapters.lock.json").read_text(encoding="utf-8"))["crs-adapter"]
+    versions = pinned_versions("models/qwen2.5-1.5b", "models\crs-adapter")
+    assert versions["adapter_revision"] == f"{lock['repo']}@{lock['revision']}"
+    assert versions["target_revision"].startswith("Qwen/Qwen2.5-1.5B-Instruct@")
+
+
+def test_unknown_model_folders_are_not_given_a_version():
+    assert pinned_versions("models/other", None) == {"target_revision": "not pinned", "adapter_revision": "not pinned"}

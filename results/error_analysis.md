@@ -116,8 +116,19 @@ Evidence lists are sentence IDs in the numbered note.
 
 No invalid output occurred on the validation or test splits (412 rows). The verifier's handling of invalid JSON, illegal labels and non-existent sentence IDs is covered by `tests/test_verifier.py`. It could not be illustrated with a real failure from these runs.
 
+## Rehearsal on invented notes
+
+This is separate from the test split and is not a benchmark. Five invented notes and 24 criteria were run through the finished app, after the model was frozen. The expected labels were written by the developer and have not been reviewed by a clinician. The full output is in `results/rehearsal_unseen_notes.txt`. The model matched 14 of the 24 expected labels, which is below its test accuracy and is too small a sample to compare with it. Nothing was changed in response.
+
+- **Numeric thresholds are unreliable.** Of 11 criteria that needed a number or range compared, 6 were right and 5 wrong. With a BMI of 33, "BMI of at least 30" came back "not included" while citing the correct sentence. HbA1c of 7.9 against "7.0 to 9.5" came back "not enough information". The app's own built-in example shows the same fault, marking HbA1c of 8.4 as "not included" for "between 7 and 10 percent".
+- **A cited failure can still be wrong.** The BMI error above made that patient "Likely ineligible". The overall rule requires a citation, but a citation shows where the model looked and does not prove its reasoning was right.
+- **A stated exclusion can be missed.** "Current anticoagulant therapy" with apixaban in the note came back "not excluded" while citing that very sentence, and it counted as met. "History of tuberculosis" with treated tuberculosis in the note came back "not excluded" with no citation, which the app does flag for review.
+- **Silence again became "not excluded".** Hepatitis B, rituximab and active cancer were not mentioned in their notes and all came back "not excluded" with no citation, matching the main test-split pattern. All three are flagged.
+- **Headings can pull citations off target.** In a list-formatted note, "Atrial fibrillation" cited the heading line "History:" rather than the bullet below it. Removing heading lines at the sentence review step avoids this.
+
 ## What this means
 
 - The app's rule that uncited verdicts need review directly limits the most common error, because the rows in case 2 are all uncited.
+- The app is a screening aid and its verdicts need a person to check them, including those that cite evidence.
 - Citation checks catch IDs that do not exist. Irrelevant citations, as in cases 7 and 8, are not caught and need a person to read the highlighted sentences.
 - Better results on this task would need more examples of rare labels and a consistent annotation rule for "not applicable". This was not attempted after the test split was opened.

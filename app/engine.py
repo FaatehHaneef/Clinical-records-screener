@@ -1,4 +1,5 @@
 """Model access for the application. Screening uses this project's own decoders."""
+import json
 import os
 from pathlib import Path
 
@@ -18,10 +19,20 @@ from screener.inference.uncached_decoder import greedy_uncached
 ROOT = Path(__file__).resolve().parents[1]
 MAX_PROMPT_TOKENS = 2_048
 MAX_NEW_TOKENS = 96
+NOT_PINNED = "not pinned"
 
 
 def _setting(name, default):
     return os.environ.get(name, default) or None
+
+
+def pinned_versions(target_path, adapter_path):
+    """Exact upstream versions of the local model folders, read from the project's lock files."""
+    models = json.loads((ROOT / "resources.lock.json").read_text(encoding="utf-8"))["models"]
+    adapters = json.loads((ROOT / "adapters.lock.json").read_text(encoding="utf-8"))
+    target = next((f"{repo}@{entry['revision']}" for repo, entry in models.items() if Path(entry["path"]) == Path(target_path)), NOT_PINNED)
+    adapter = adapters.get(Path(adapter_path).name) if adapter_path else None
+    return {"target_revision": target, "adapter_revision": f"{adapter['repo']}@{adapter['revision']}" if adapter else NOT_PINNED}
 
 
 class Engine:
@@ -75,7 +86,8 @@ class Engine:
 
     def provenance(self):
         info = self.info()
-        return {key: info[key] for key in ("target_model", "adapter", "trained", "output_order", "device")}
+        fields = {key: info[key] for key in ("target_model", "adapter", "trained", "output_order", "device")}
+        return {**fields, **pinned_versions(self.target_path, info["adapter"])}
 
     def _encode(self, sentences, criterion_type, criterion):
         messages = build_messages(sentences, criterion_type, criterion, self.order)

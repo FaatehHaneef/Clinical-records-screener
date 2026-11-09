@@ -21,7 +21,7 @@ _COUNTS = (
     ("unverified", "Unverified"),
     ("no_evidence", "No citation"),
 )
-_FIELD_NAMES = {"note_sha256": "Note SHA-256", "target_model": "Target model", "output_order": "Output order", "decoding_mode": "Decoding mode"}
+_FIELD_NAMES = {"note_sha256": "Note SHA-256", "target_model": "Target model", "output_order": "Output order", "decoding_mode": "Decoding mode", "target_revision": "Target revision", "adapter_revision": "Adapter revision"}
 
 _STYLE = """
 :root{--ink:#16181d;--soft:#4a505b;--faint:#6b7280;--line:#e3e5e9;--wash:#f4f5f7}

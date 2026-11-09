@@ -95,7 +95,10 @@ export function SentenceStep({ draft, update, onBack, onNext }: { draft: Draft; 
   const [error, setError] = useState('');
   const inputs = useRef<Array<HTMLInputElement | null>>([]);
   const { sentences } = draft;
-  const change = (index: number, text: string) => update({ sentences: sentences.map((value, i) => (i === index ? text : value)) });
+  const change = (index: number, text: string) => {
+    update({ sentences: sentences.map((value, i) => (i === index ? text : value)) });
+    setError('');
+  };
   const remove = (index: number) => update({ sentences: sentences.filter((_, i) => i !== index) });
   const add = () => update({ sentences: [...sentences, ''] });
 

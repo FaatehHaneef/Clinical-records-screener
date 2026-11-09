@@ -19,7 +19,7 @@ if not exist "app\web\dist\index.html" (
 )
 
 echo Starting CRS. Your browser will open shortly.
-start "" /b cmd /c "timeout /t 3 /nobreak >nul & start http://127.0.0.1:8600"
+start "" /b cmd /c "%SystemRoot%\System32\timeout.exe /t 3 /nobreak >nul & start http://127.0.0.1:8600"
 .venv\Scripts\python.exe -m app.server
 echo.
 echo CRS has stopped.

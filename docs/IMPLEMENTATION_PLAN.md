@@ -165,7 +165,7 @@ Frontend: React, Vite, Tailwind and the `thinking-orbs` package, with bundled fo
 - [x] **9.8 Validation and recovery.** Empty note, oversized note with a visible warning and no silent truncation, missing criteria, bad file, bad trial ID, network failure, GPU out of memory.
 - [x] **9.9 Export.** Downloadable HTML and JSON report with provenance: model and adapter revision, decoding mode, time and input hash. Saved in `reports/`.
 - [x] **9.10 Notice.** "Educational screening prototype, not a clinical enrollment decision" appears in every exported report.
-- [ ] **9.11 Rehearsal.** Fresh start from the launcher with unseen notes on the laptop. Fix anything found.
+- [x] **9.11 Rehearsal.** Fresh start from the launcher with unseen notes on the laptop. Fix anything found.
 
 ## Phase 10: Paper (A1, A2, A3, H1)
 
