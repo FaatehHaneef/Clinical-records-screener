@@ -263,6 +263,7 @@ def main():
 
     engine = Engine()
     threading.Thread(target=engine.load, daemon=True).start()
+    print("CRS is running at http://127.0.0.1:8600  (close this window to stop it)", flush=True)
     uvicorn.run(create_app(engine), host="127.0.0.1", port=8600, log_level="warning")
 
 
