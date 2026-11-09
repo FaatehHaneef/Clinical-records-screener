@@ -158,14 +158,14 @@ Frontend: React, Vite, Tailwind and the `thinking-orbs` package, with bundled fo
 
 - [x] **9.1 Backend.** FastAPI with the screening pipeline, status endpoint, single-job queue and per-criterion progress updates. Uses our own decoders.
 - [x] **9.2 Memory strategy.** Target at float16 on GPU, matching the evaluated model. Draft on GPU if it fits, otherwise CPU. Catch out-of-memory errors and show a clear message.
-- [ ] **9.3 Launcher.** `start_app.bat`: double-click, check environment and weights, start the server, open the browser, show a loading screen.
-- [ ] **9.4 Screening flow.** Paste or upload a note, review numbered sentences, enter inclusion and exclusion criteria, or load an example or a ClinicalTrials.gov ID.
-- [ ] **9.5 Results.** A card for each criterion showing label, cited sentence IDs, evidence highlighted in the note, explanation, and a missing-information panel.
-- [ ] **9.6 Overall result.** Explicit rule, displayed in the app: any "excluded" or "not included" gives *likely ineligible*; otherwise any "not enough information" gives *needs review*; otherwise *potentially eligible*. Always marked preliminary and not ground truth.
-- [ ] **9.7 Benchmark view.** Run uncached, cached and speculative decoding live on the current input, showing timings, tokens/s, memory, token equality and acceptance rate. Run reference against tiled attention live and show error and time.
-- [ ] **9.8 Validation and recovery.** Empty note, oversized note with a visible warning and no silent truncation, missing criteria, bad file, bad trial ID, network failure, GPU out of memory.
-- [ ] **9.9 Export.** Downloadable HTML and JSON report with provenance: model and adapter revision, decoding mode, time and input hash. Saved in `reports/`.
-- [ ] **9.10 Notice.** "Educational screening prototype, not a clinical enrollment decision" appears in every exported report.
+- [x] **9.3 Launcher.** `start_app.bat`: double-click, check environment and weights, start the server, open the browser, show a loading screen.
+- [x] **9.4 Screening flow.** Paste or upload a note, review numbered sentences, enter inclusion and exclusion criteria, or load an example or a ClinicalTrials.gov ID.
+- [x] **9.5 Results.** A card for each criterion showing label, cited sentence IDs, evidence highlighted in the note, explanation, and a missing-information panel.
+- [x] **9.6 Overall result.** Explicit rule, displayed in the app: any "excluded" or "not included" gives *likely ineligible*; otherwise any "not enough information" gives *needs review*; otherwise *potentially eligible*. Always marked preliminary and not ground truth.
+- [x] **9.7 Benchmark view.** Run uncached, cached and speculative decoding live on the current input, showing timings, tokens/s, memory, token equality and acceptance rate. Run reference against tiled attention live and show error and time.
+- [x] **9.8 Validation and recovery.** Empty note, oversized note with a visible warning and no silent truncation, missing criteria, bad file, bad trial ID, network failure, GPU out of memory.
+- [x] **9.9 Export.** Downloadable HTML and JSON report with provenance: model and adapter revision, decoding mode, time and input hash. Saved in `reports/`.
+- [x] **9.10 Notice.** "Educational screening prototype, not a clinical enrollment decision" appears in every exported report.
 - [ ] **9.11 Rehearsal.** Fresh start from the launcher with unseen notes on the laptop. Fix anything found.
 
 ## Phase 10: Paper (A1, A2, A3, H1)
