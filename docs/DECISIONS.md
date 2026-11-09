@@ -38,4 +38,6 @@ A running record of options considered, what was rejected, and what went wrong.
 
 **First dependency install failed.** `datasets` 5.1.0 needs `huggingface_hub` 1.31 or newer, and the initial pin was 1.14.0. Corrected to 1.33.0.
 
+**First Kaggle training run failed on a preinstalled package.** Kaggle ships torchao 0.10.0, and peft 0.21.2 raises an error when it finds a torchao older than 0.16 while attaching LoRA layers. The baselines finished because they attach no adapter. torchao is now pinned to 0.18.0, and this was tested on the laptop with a real LoRA epoch.
+
 **Dataset arrived under Git LFS.** The upstream `.gitattributes` routed the parquet file through LFS, so a plain clone without git-lfs would receive a pointer file. The rule was removed and the file is stored directly.

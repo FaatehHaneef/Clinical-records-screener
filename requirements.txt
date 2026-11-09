@@ -20,4 +20,6 @@ uvicorn==0.40.0
 python-multipart
 psutil
 pyyaml==6.0.3
+# Kaggle preinstalls torchao 0.10.0, and peft refuses to attach LoRA adapters alongside it.
+torchao==0.18.0
 nltk
