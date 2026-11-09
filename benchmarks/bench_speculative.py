@@ -37,11 +37,14 @@ def scenarios(tokenizer, device, target, examples):
     ]
 
 
-def run_pass(decode, prompts, max_new_tokens, eos, device):
+def run_pass(decode, prompts, max_new_tokens, eos, device, draft_device):
     """Run every prompt once, returning per-prompt tokens and summed measurements."""
     if device.type == "cuda":
         torch.cuda.empty_cache()
         torch.cuda.reset_peak_memory_stats(device)
+    second_gpu = draft_device.type == "cuda" and draft_device != device
+    if second_gpu:
+        torch.cuda.reset_peak_memory_stats(draft_device)
     base = torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
     start = clock(device)
     results = [decode(prompt, max_new_tokens, eos) for prompt in prompts]
@@ -54,6 +57,8 @@ def run_pass(decode, prompts, max_new_tokens, eos, device):
         "prefill_s": sum_of("prefill_seconds"),
         "decode_s": sum_of("decode_seconds"),
     }
+    if second_gpu:
+        measured["draft_gpu_peak_gb"] = torch.cuda.max_memory_allocated(draft_device) / 1024**3
     if hasattr(results[0], "rounds"):
         for name in ("rounds", "drafted", "accepted", "corrections", "bonus_tokens", "target_forwards", "draft_forwards"):
             measured[name] = sum_of(name)
@@ -104,36 +109,50 @@ def main():
         )
 
     results = []
+    output = ROOT / "results" / f"bench_speculative_{args.label}.json"
+
+    def save_report():
+        report = {
+            "label": args.label, "target": args.target, "target_adapter": args.target_adapter, "draft": args.draft,
+            "draft_adapter": args.draft_adapter, "target_device": str(device), "draft_device": str(draft_device),
+            "device_name": torch.cuda.get_device_name(0) if device.type == "cuda" else "cpu", "repeats": args.repeats,
+            "warm_up_passes_discarded": 2, "torch": torch.__version__, "results": results,
+        }
+        output.write_text(json.dumps(report, indent=2), encoding="utf-8")
+
     for scenario in scenarios(tokenizer, device, target, args.examples):
         name, prompts, limit, eos = scenario["name"], scenario["prompts"], scenario["max_new_tokens"], scenario["eos"]
-        expected, _ = run_pass(decoders["greedy"], prompts, limit, eos, device)
-        equality = {}
-        for mode, decode in decoders.items():
-            tokens, _ = run_pass(decode, prompts, limit, eos, device)
-            equality[mode] = tokens == expected
-        passes = {mode: [] for mode in decoders}
-        for _ in range(args.repeats):
+        run = lambda decode: run_pass(decode, prompts, limit, eos, device, draft_device)
+        try:
+            expected, _ = run(decoders["greedy"])
+            equality = {}
             for mode, decode in decoders.items():
-                passes[mode].append(run_pass(decode, prompts, limit, eos, device)[1])
+                tokens, _ = run(decode)
+                equality[mode] = tokens == expected
+            passes = {mode: [] for mode in decoders}
+            for _ in range(args.repeats):
+                for mode, decode in decoders.items():
+                    passes[mode].append(run(decode)[1])
+        except torch.cuda.OutOfMemoryError as error:
+            # Keep earlier scenarios: an out-of-memory result is still a finding worth reporting.
+            torch.cuda.empty_cache()
+            results.append({"scenario": name, "failed": "GPU out of memory", "detail": str(error)[:300]})
+            save_report()
+            print(f"{name}: GPU out of memory", flush=True)
+            continue
         modes = {mode: summarize(values) for mode, values in passes.items()}
         baseline = modes["greedy"]["total_s"]
         for summary in modes.values():
             summary["speedup_vs_greedy"] = baseline / summary["total_s"]
         results.append({"scenario": name, "prompts": len(prompts), "max_new_tokens": limit, "stops_at_eos": bool(eos),
                         "tokens_equal_to_greedy": equality, "modes": modes})
+        save_report()
         print(f"{name}: all equal={all(equality.values())}", flush=True)
         for mode, summary in modes.items():
             acceptance = f" accept={summary['acceptance_rate']:.3f}" if "acceptance_rate" in summary else ""
             print(f"  {mode}: {summary['total_s']:.3f}s {summary['tokens_per_s']:.1f} tok/s speedup={summary['speedup_vs_greedy']:.2f}x{acceptance}", flush=True)
 
-    report = {
-        "label": args.label, "target": args.target, "target_adapter": args.target_adapter, "draft": args.draft,
-        "draft_adapter": args.draft_adapter, "target_device": str(device), "draft_device": str(draft_device),
-        "device_name": torch.cuda.get_device_name(0) if device.type == "cuda" else "cpu", "repeats": args.repeats,
-        "warm_up_passes_discarded": 2, "torch": torch.__version__, "results": results,
-    }
-    output = ROOT / "results" / f"bench_speculative_{args.label}.json"
-    output.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    save_report()
     print(f"wrote {output.relative_to(ROOT)}")
 
 
