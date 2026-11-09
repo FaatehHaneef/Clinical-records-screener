@@ -41,6 +41,7 @@ Everything the project needs, mapped to the rubric. `scripts/fetch_resources.py`
 |---|---|
 | TrialGPT source code | Reference only under the assignment rules. Read it at https://github.com/ncbi-nlp/TrialGPT |
 | Qwen3-4B, Qwen3-1.7B, Qwen3-0.6B weights | Discussed as a rejected alternative. Thinking mode complicates structured output and 4B will not fit a 4 GB GPU. Facts come from the model cards and the Qwen3 report. |
+| Qwen/Qwen2.5-7B-Instruct weights (14.19 GB, Apache 2.0, tokenizer verified identical to the 0.5B) | Optional benchmark only, downloaded on Kaggle by `kaggle/optional_large_target.ipynb` |
 | ClinicalTrials.gov records | Optional and fetched live: https://clinicaltrials.gov/api/v2/ |
 | IEEEtran template | Built into Overleaf |
 
