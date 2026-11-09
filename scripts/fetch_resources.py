@@ -34,7 +34,7 @@ PAPERS = {
     "2505.09388": "qwen3-report",
     "2502.02737": "smollm2",
 }
-SKIP_PATTERNS = ["onnx/*", "runs/*", "*.bin", "*.gguf", "*.onnx", "*.onnx_data", "*.pt", "*.pth", "*.py"]
+SKIP_PATTERNS = [".gitattributes", "onnx/*", "runs/*", "*.bin", "*.gguf", "*.onnx", "*.onnx_data", "*.pt", "*.pth", "*.py"]
 
 
 def sha256(path):
