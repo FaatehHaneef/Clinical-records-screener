@@ -110,12 +110,12 @@ start_app.bat         double-click launcher
 
 ## Phase 5: Tiled attention with online softmax (E1, E2, E3)
 
-- [ ] **5.1 Reference attention.** `reference.py`: scaled by the square root of d, causal and padding masks applied before softmax, stable softmax by subtracting the row maximum, safe handling of fully masked rows.
-- [ ] **5.2 Tiled attention.** `tiled_online.py`: loop over query and key tiles, applying the mask per tile. For each row keep a running maximum `m`, normalizer `l` and output `O`. When `m` rises, rescale old `l` and `O` by `exp(m_old - m_new)`. Divide `O` by `l` at the end. No fused backend.
-- [ ] **5.3 Numerical tests.** Multiple shapes (including length 1 and non-square), tile sizes, causal, padding and no mask, large score magnitudes, float32 and float64. Report maximum and mean absolute error against the reference, and compare with `F.scaled_dot_product_attention`.
+- [x] **5.1 Reference attention.** `reference.py`: scaled by the square root of d, causal and padding masks applied before softmax, stable softmax by subtracting the row maximum, safe handling of fully masked rows.
+- [x] **5.2 Tiled attention.** `tiled_online.py`: loop over query and key tiles, applying the mask per tile. For each row keep a running maximum `m`, normalizer `l` and output `O`. When `m` rises, rescale old `l` and `O` by `exp(m_old - m_new)`. Divide `O` by `l` at the end. No fused backend.
+- [x] **5.3 Numerical tests.** Multiple shapes (including length 1 and non-square), tile sizes, causal, padding and no mask, large score magnitudes, float32 and float64. Report maximum and mean absolute error against the reference, and compare with `F.scaled_dot_product_attention`.
 - [ ] **5.4 Performance.** `bench_attention.py`: runtime and peak memory on CPU and GPU across lengths and tile sizes.
   Done when: the report explains honestly why Python loops, repeated small allocations and no fused kernel can make the educational version slower.
-- [ ] **5.5 Stretch.** Swap the tiled attention into the real model and confirm identical generated tokens on one prompt.
+- [x] **5.5 Stretch.** Swap the tiled attention into the real model and confirm identical generated tokens on one prompt.
 
 ## Phase 6: Speculative decoding (F1, F2, F3)
 
