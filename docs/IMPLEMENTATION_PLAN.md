@@ -120,9 +120,9 @@ start_app.bat         double-click launcher
 ## Phase 6: Speculative decoding (F1, F2, F3)
 
 - [ ] **6.1 Pair justification.** Identical tokenizer (already verified), memory table, and comparison of base draft against fine-tuned draft (R6).
-- [ ] **6.2 Algorithm.** `speculative.py`, with cache rule "cache holds every token except the last one". Each round: the draft proposes k tokens; the target checks them in one forward pass; the longest matching prefix is accepted; the target's own next token is added as the correction or bonus token; both caches are cropped to match. EOS and length limits are handled mid-round.
-- [ ] **6.3 State tests.** Assert the caching rule on both models every round, including all-accepted, all-rejected and EOS-mid-draft cases.
-- [ ] **6.4 Equivalence tests.** Token equality against the Phase 4 greedy decoder on many prompts, and Hugging Face assisted generation as a reference check only.
+- [x] **6.2 Algorithm.** `speculative.py`, with cache rule "cache holds every token except the last one". Each round: the draft proposes k tokens; the target checks them in one forward pass; the longest matching prefix is accepted; the target's own next token is added as the correction or bonus token; both caches are cropped to match. EOS and length limits are handled mid-round.
+- [x] **6.3 State tests.** Assert the caching rule on both models every round, including all-accepted, all-rejected and EOS-mid-draft cases.
+- [x] **6.4 Equivalence tests.** Token equality against the Phase 4 greedy decoder on many prompts, and Hugging Face assisted generation as a reference check only.
 - [ ] **6.5 Benchmark.** k of 2, 4 and 8, on real short JSON outputs and on longer generations. Report acceptance rate, accepted tokens per round, latency, tokens/s, speedup or slowdown and memory, using the same timing method as Phase 4.
   Done when: any slowdown is explained with measured draft and verification costs.
 
