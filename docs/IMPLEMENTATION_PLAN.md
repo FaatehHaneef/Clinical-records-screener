@@ -52,17 +52,17 @@ start_app.bat         double-click launcher
 
 ## Phase 1: Data foundation (B1, B2)
 
-- [ ] **1.1 Fixed split.** `split.py`: sort unique patient IDs, shuffle with `np.random.default_rng(42)`, assign 37/8/8. Ignore the dataset's `training` column.
+- [x] **1.1 Fixed split.** `split.py`: sort unique patient IDs, shuffle with `np.random.default_rng(42)`, assign 37/8/8. Ignore the dataset's `training` column.
   Done when: `splits/manifest.json` lists patient IDs, row counts and label counts per split, and the test split's label counts are written without being printed or used.
-- [ ] **1.2 Leakage tests.** `tests/test_split.py`: three disjoint patient sets, 53 total, every row in exactly one split, rerun gives identical output.
+- [x] **1.2 Leakage tests.** `tests/test_split.py`: three disjoint patient sets, 53 total, every row in exactly one split, rerun gives identical output.
   Done when: tests pass and the output is committed.
-- [ ] **1.3 Sentence parsing.** `sentences.py`: turn each numbered note into `{id: text}` and keep the original IDs. Add a splitter for unseen notes using NLTK. Remove the one blank-criterion row and record it.
+- [x] **1.3 Sentence parsing.** `sentences.py`: turn each numbered note into `{id: text}` and keep the original IDs. Add a splitter for unseen notes using NLTK. Remove the one blank-criterion row and record it.
   Done when: reassembled sentences match the note and every evidence ID resolves.
-- [ ] **1.4 Input and output format.** `prompts.py` builds the prompt from patient sentences, criterion type and criterion text. Output is JSON: `{"label": ..., "evidence": [ids]}`.
+- [x] **1.4 Input and output format.** `prompts.py` builds the prompt from patient sentences, criterion type and criterion text. Output is JSON: `{"label": ..., "evidence": [ids]}`.
   Done when: a column allowlist is used, and a test proves no `gpt4_*` or `explanation_correctness` value can reach a prompt.
-- [ ] **1.5 Truncation audit.** Measure full prompt length on train and validation. No truncation in training (longest note is 372 tokens).
+- [x] **1.5 Truncation audit.** Measure full prompt length on train and validation. No truncation in training (longest note is 372 tokens).
   Done when: `results/truncation.json` shows zero truncated examples.
-- [ ] **1.6 Repo fix.** Remove the LFS rule on the dataset so a plain `git clone` gets the real parquet file.
+- [x] **1.6 Repo fix.** Remove the LFS rule on the dataset so a plain `git clone` gets the real parquet file.
   Done when: a fresh clone reads 1,015 rows without git-lfs.
 
 ## Phase 2: Fine-tuning (A3, B3)
