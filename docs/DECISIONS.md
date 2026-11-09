@@ -32,6 +32,14 @@ A running record of options considered, what was rejected, and what went wrong.
 
 **Model-written explanations were tested and rejected.** The base model, with the adapter disabled, was asked to explain verdicts from only the cited sentences. On real validation rows it invented facts: it called a female patient male, and said age 58 falls outside a 25-65 range. A check that rejected numbers absent from the sources did not catch either error, since both used numbers or words already present. The assignment requires explanations based only on available information, so explanations now state the verdict in fixed wording and quote the cited sentences exactly. This is less fluent, but it cannot introduce a fact.
 
+## Attention
+
+**The tiled version is much slower in Python, and that is expected.** On the laptop GPU at length 4096 with causal masks, the reference took 53 ms, PyTorch's fused kernel 19 ms, and tiled attention 101 ms with 256-token tiles or 21.7 s with 16-token tiles. Each tile costs interpreter time, separate GPU submissions and small allocations, so small tiles lose to overhead. A compiled kernel does the same loop in fused native code with no interpreter between tiles. Larger tiles reduce that overhead, which is why the 256-token tile is fastest.
+
+**Memory is where tiling helps.** At length 4096 the reference needed 1,536 MB of GPU memory above the inputs, against 16-19 MB for every tile size, because the full score matrix never exists. Maximum error against the reference stayed near 1e-6 in float32 at every length.
+
+**Causal masking skips about half the tiles.** Tiles above the diagonal are fully masked and never computed. At length 4096 with 256-token tiles, 120 of 256 tiles were skipped.
+
 ## Environment failures
 
 **System PyTorch was CPU-only.** Found during the resource check. A project virtual environment now installs the CUDA 12.8 build.
