@@ -13,7 +13,7 @@ Everything the project needs, mapped to the rubric. `scripts/fetch_resources.py`
 | Qwen/Qwen2.5-0.5B-Instruct (draft model) | `models/qwen2.5-0.5b/` | 0.9 GB | F1-F3 |
 | HuggingFaceTB/SmolLM2-1.7B-Instruct (second candidate) | `models/smollm2-1.7b/` | 3.2 GB | A2, A3 |
 | NLTK punkt_tab sentence splitter (numbers sentences in unseen notes) | `data/nltk_data/` | small | G2 |
-| 11 papers (listed below) | `papers/` | about 30 MB | A1, H1 |
+| 11 papers (listed below) | `papers/` | about 10 MB | A1, H1 |
 
 ## Papers
 
