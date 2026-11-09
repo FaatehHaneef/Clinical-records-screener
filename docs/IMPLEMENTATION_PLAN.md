@@ -67,10 +67,10 @@ start_app.bat         double-click launcher
 
 ## Phase 2: Fine-tuning (A3, B3)
 
-- [ ] **2.1 Training script.** `train_lora.py` with PEFT LoRA. Loss covers only the assistant's answer tokens. Fixed seeds, YAML config, per-epoch CSV log of train loss, validation loss and validation macro-F1 from real greedy generation. Early stopping on validation macro-F1.
-- [ ] **2.2 Local smoke test.** Run a few examples on the laptop to catch bugs before spending Kaggle time.
-- [ ] **2.3 Explanation design.** Explanations are built only from cited sentences: the model with the adapter disabled writes one or two sentences given those sentences, with a template fallback. No GPT-4 text is used anywhere.
-- [ ] **2.4 Kaggle notebook.** `kaggle/train.ipynb` clones the repo, installs pinned packages and runs the experiment list.
+- [x] **2.1 Training script.** `train_lora.py` with PEFT LoRA. Loss covers only the assistant's answer tokens. Fixed seeds, YAML config, per-epoch CSV log of train loss, validation loss and validation macro-F1 from real greedy generation. Early stopping on validation macro-F1.
+- [x] **2.2 Local smoke test.** Run a few examples on the laptop to catch bugs before spending Kaggle time.
+- [x] **2.3 Explanation design.** Explanations state the verdict in fixed wording and quote the cited sentences exactly. A base-model paraphrase was tested and rejected because it invented facts (see `docs/DECISIONS.md`). No GPT-4 text is used anywhere.
+- [x] **2.4 Kaggle notebook.** `kaggle/train.ipynb` clones the repo, installs pinned packages and runs the experiment list.
 - [ ] **2.5 `[YOU]` Kaggle run.** Phone verification is done. Select T4 GPU, turn on internet, run the notebook.
 - [ ] **2.6 Experiment list, validation only.**
 
