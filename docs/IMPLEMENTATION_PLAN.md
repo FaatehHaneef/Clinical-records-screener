@@ -91,20 +91,20 @@ start_app.bat         double-click launcher
 
 ## Phase 3: Evaluation and verification (C1, C2, C3, B4)
 
-- [ ] **3.1 Verifier.** `verifier.py` parses the JSON, checks the label is allowed for the criterion type, and checks IDs exist. Invalid output counts as wrong and is reported as its own rate. It never guesses a label from missing evidence.
-- [ ] **3.2 Classification metrics.** `metrics.py`: accuracy, macro-F1, per-class precision/recall/F1 and confusion matrices, for overall, inclusion and exclusion.
+- [x] **3.1 Verifier.** `verifier.py` parses the JSON, checks the label is allowed for the criterion type, and checks IDs exist. Invalid output counts as wrong and is reported as its own rate. It never guesses a label from missing evidence.
+- [x] **3.2 Classification metrics.** `metrics.py`: accuracy, macro-F1, per-class precision/recall/F1 and confusion matrices, for overall, inclusion and exclusion.
   Rule for labels with no examples in a split: marked "n/a" and left out of macro-F1, with the macro-F1 counting them as zero also shown.
-- [ ] **3.3 Evidence metrics.** Micro and macro precision/recall/F1. Rules, stated in the report: both empty counts as correct in the macro-all score; gold empty with predictions gives precision 0; gold present with no prediction gives recall 0. Report macro-all and macro on rows with gold evidence.
-- [ ] **3.4 Baselines and uncertainty.** Majority-class predictor and "cites nothing" predictor. Patient-level bootstrap confidence intervals, because the test set has only 8 patients.
-- [ ] **3.5 Sealed evaluator.** `evaluate.py` refuses the test split unless given `--final`, and logs each such run.
+- [x] **3.3 Evidence metrics.** Micro and macro precision/recall/F1. Rules, stated in the report: both empty counts as correct in the macro-all score; gold empty with predictions gives precision 0; gold present with no prediction gives recall 0. Report macro-all and macro on rows with gold evidence.
+- [x] **3.4 Baselines and uncertainty.** Majority-class predictor and "cites nothing" predictor. Patient-level bootstrap confidence intervals, because the test set has only 8 patients.
+- [x] **3.5 Sealed evaluator.** `evaluate.py` refuses the test split unless given `--final`, and logs each such run.
   Done when: metric code passes hand-computed unit tests.
 
 ## Phase 4: KV-cached decoding (D1, D2, D3)
 
-- [ ] **4.1 Reference path.** `uncached_decoder.py`: full forward pass on the whole sequence every step, `use_cache=False`.
-- [ ] **4.2 Cached decoder.** `cached_decoder.py`, written as an explicit loop. Prefill runs the full prompt. Each later step sends only the new token, with an extended attention mask, the next `position_ids` taken from the mask, and `cache_position`. The cache object is passed in and updated by hand.
-- [ ] **4.3 State checks.** Assert the cache length equals tokens processed at every step. Log cache bytes per step to show growth. Test a left-padded prompt to prove masking and positions are correct.
-- [ ] **4.4 Equivalence tests.** At least 3 input lengths by 3 output lengths under greedy decoding, with EOS ignored so lengths are exact. Compare tokens, record maximum logit difference per step, and run in float32 and float16. Use `model.generate` as a third check. Investigate and write up any mismatch.
+- [x] **4.1 Reference path.** `uncached_decoder.py`: full forward pass on the whole sequence every step, `use_cache=False`.
+- [x] **4.2 Cached decoder.** `cached_decoder.py`, written as an explicit loop. Prefill runs the full prompt. Each later step sends only the new token, with an extended attention mask, the next `position_ids` taken from the mask, and `cache_position`. The cache object is passed in and updated by hand.
+- [x] **4.3 State checks.** Assert the cache length equals tokens processed at every step. Log cache bytes per step to show growth. Test a left-padded prompt to prove masking and positions are correct.
+- [x] **4.4 Equivalence tests.** At least 3 input lengths by 3 output lengths under greedy decoding, with EOS ignored so lengths are exact. Compare tokens, record maximum logit difference per step, and run in float32 and float16. Use `model.generate` as a third check. Investigate and write up any mismatch.
 - [ ] **4.5 Benchmark.** `bench_cache.py`: warm-up run, `torch.cuda.synchronize()` around timers, 5 repeats, median and spread, for prefill, decode, tokens/s and peak GPU and CPU memory.
   Done when: results are in `results/bench_cache.json`, and the report explains positions, masking, cache growth and numerical differences.
 
