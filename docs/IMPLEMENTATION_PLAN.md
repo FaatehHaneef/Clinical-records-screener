@@ -1,7 +1,6 @@
 # Implementation plan
 
-Goal: full marks on all 27 rubric items. Deadline: November 10, 2026, plus a 2-hour grace period.
-Confirm the exact time on Google Classroom. Missing the grace period or the demo means zero.
+Goal: full marks on all 27 rubric items.
 
 **How to read this:** each task has an ID, the rubric items it earns, and a "done when" test.
 `[YOU]` marks work only you can do. Everything else is built and committed as we go.
@@ -72,7 +71,7 @@ start_app.bat         double-click launcher
 - [ ] **2.2 Local smoke test.** Run a few examples on the laptop to catch bugs before spending Kaggle time.
 - [ ] **2.3 Explanation design.** Explanations are built only from cited sentences: the model with the adapter disabled writes one or two sentences given those sentences, with a template fallback. No GPT-4 text is used anywhere.
 - [ ] **2.4 Kaggle notebook.** `kaggle/train.ipynb` clones the repo, installs pinned packages and runs the experiment list.
-- [ ] **2.5 `[YOU]` Kaggle setup.** Phone verification, select T4 GPU, turn on internet, run the notebook.
+- [ ] **2.5 `[YOU]` Kaggle run.** Phone verification is done. Select T4 GPU, turn on internet, run the notebook.
 - [ ] **2.6 Experiment list, validation only.**
 
 | Run | What it tests | Why |
@@ -204,27 +203,3 @@ start_app.bat         double-click launcher
 | H1 Paper | 5 | IEEE PDF | 10 |
 | H2 Reproducibility | 5 | Clean-clone test, video | 11 |
 | H3 Defense | 5 | `docs/DEFENSE.md`, your own practice | 11 |
-
-## Schedule
-
-| When | Claude builds | You do |
-|---|---|---|
-| Nov 9, afternoon | Phases 1 and 2 code | Kaggle verification, Hugging Face account |
-| Nov 9, evening | Phases 3, 4 and 5 | Start the training notebook, read decoder code as it lands |
-| Nov 9, night | Phase 6 and final evaluation notebook | Check training, upload adapter |
-| Nov 10, morning | Phase 9 | Run the final Kaggle notebook (Phase 7) |
-| Nov 10, midday | Phase 8, Phase 10 draft, README | Test the app with your own notes |
-| Nov 10, afternoon | Fixes, Phase 11 docs | Record video, compile paper, practice defense |
-| Before deadline | Clean-clone test | Submit, with hours to spare |
-
-## If time runs short
-
-Cut in this order, least marks lost first:
-
-1. Task 5.5 (attention inside the real model).
-2. R5 fine-tuned SmolLM2. Keep R0b, which still supports model selection.
-3. Longest input and output benchmark sizes, keeping at least 3 of each.
-4. ClinicalTrials.gov import in the app.
-5. Model-written explanations. The template explanation still meets the requirement.
-
-Never cut: the fixed split, the sealed test run, equivalence tests, the working app, the paper, the video.
