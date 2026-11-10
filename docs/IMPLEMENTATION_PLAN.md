@@ -181,7 +181,7 @@ Frontend: React, Vite, Tailwind and the `thinking-orbs` package, with bundled fo
 
 ## Phase 11: Submission and defense (H2, H3)
 
-- [ ] **11.1** README: setup, Kaggle steps, app startup, adapter link, results map.
+- [x] **11.1** README: setup, Kaggle steps, app startup, adapter link, results map.
 - [ ] **11.2** Clean-clone test following the README exactly.
 - [ ] **11.3 `[YOU]`** Record the 5-7 minute demo. Script: problem, unseen note, evidence inspection, inference comparison, invalid input recovery, export.
 - [ ] **11.4** `docs/DEFENSE.md`: plain explanations of the model, cache, attention, decoding and results, and code locations.
