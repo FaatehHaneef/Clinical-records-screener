@@ -9,6 +9,8 @@
 \usepackage{array}
 \usepackage{url}
 \usepackage{textcomp}
+\usepackage{etoolbox}
+\patchcmd{\abstract}{\textit{\abstractname}---}{\textit{\abstractname}\ -\ }{}{}
 \usepackage{iftex}
 \ifXeTeX
   \usepackage{fontspec}
@@ -23,10 +25,12 @@
 
 \title{CRS: Screening Patients Against Clinical Trial Criteria with a Fine-Tuned Local Transformer}
 
-\author{\IEEEauthorblockN{Syed Muhammad Faateh Haneef}
-\IEEEauthorblockA{Roll No. 23i-0688\\
-\url{https://github.com/FaatehHaneef/Clinical-records-screener}}
-}
+\author{\begin{minipage}{\textwidth}\raggedright
+Name: Syed Muhammad Faateh Haneef\\
+Roll No. 23i-0688\\
+GitHub repo: \url{https://github.com/FaatehHaneef/Clinical-records-screener}\\
+Demonstration:
+\end{minipage}}
 
 \maketitle
 
