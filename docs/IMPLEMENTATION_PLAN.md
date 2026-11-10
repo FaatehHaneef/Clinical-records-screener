@@ -119,7 +119,7 @@ start_app.bat         double-click launcher
 
 ## Phase 6: Speculative decoding (F1, F2, F3)
 
-- [ ] **6.1 Pair justification.** Identical tokenizer (already verified), memory table, and comparison of base draft against fine-tuned draft (R6).
+- [x] **6.1 Pair justification.** Identical tokenizer (already verified), memory table, and comparison of base draft against fine-tuned draft (R6).
 - [x] **6.2 Algorithm.** `speculative.py`, with cache rule "cache holds every token except the last one". Each round: the draft proposes k tokens; the target checks them in one forward pass; the longest matching prefix is accepted; the target's own next token is added as the correction or bonus token; both caches are cropped to match. EOS and length limits are handled mid-round.
 - [x] **6.3 State tests.** Assert the caching rule on both models every round, including all-accepted, all-rejected and EOS-mid-draft cases.
 - [x] **6.4 Equivalence tests.** Token equality against the Phase 4 greedy decoder on many prompts, and Hugging Face assisted generation as a reference check only.
@@ -169,14 +169,14 @@ Frontend: React, Vite, Tailwind and the `thinking-orbs` package, with bundled fo
 
 ## Phase 10: Paper (A1, A2, A3, H1)
 
-- [ ] **10.1** IEEE LaTeX in `report/`, with all required sections from title through references.
-- [ ] **10.2** Literature comparison of at least 5 sources, with limitations, tied to our choices (11 papers are ready).
-- [ ] **10.3** Model comparison table: architecture, parameters, tokenizer, context window, license, memory.
-- [ ] **10.4** Decisions and failures from `docs/DECISIONS.md`.
-- [ ] **10.5** Architecture, attention, decoding and application diagrams.
-- [ ] **10.6** Generated figures and tables: training curves, confusion matrices, before/after, evidence scores, cache, attention and speculative benchmarks, error table, app screenshots. Each one cited and interpreted in the text.
-- [ ] **10.7** Limitations: small test set, rare labels, single annotator effects, hardware differences, screening-only use.
-- [ ] **10.8** AI-use appendix, written honestly.
+- [x] **10.1** IEEE LaTeX in `report/`, with all required sections from title through references.
+- [x] **10.2** Literature comparison of at least 5 sources, with limitations, tied to our choices (11 papers are ready).
+- [x] **10.3** Model comparison table: architecture, parameters, tokenizer, context window, license, memory.
+- [x] **10.4** Decisions and failures from `docs/DECISIONS.md`.
+- [x] **10.5** Architecture, attention, decoding and application diagrams.
+- [x] **10.6** Generated figures and tables: training curves, confusion matrices, before/after, evidence scores, cache, attention and speculative benchmarks, error table, app screenshots. Each one cited and interpreted in the text.
+- [x] **10.7** Limitations: small test set, rare labels, single annotator effects, hardware differences, screening-only use.
+- [x] **10.8** AI-use appendix, written honestly.
 - [ ] **10.9 `[YOU]`** Compile on Overleaf and read it through.
 
 ## Phase 11: Submission and defense (H2, H3)
