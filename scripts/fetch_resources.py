@@ -99,7 +99,20 @@ def fetch_models_from_lock():
         print(f"hub ok: {repo_id} @ {entry['revision']}", flush=True)
 
 
+def fetch_for_app():
+    """Only what the application needs, at the recorded revisions."""
+    lock = json.loads(LOCK.read_text(encoding="utf-8"))
+    for repo_id in ("Qwen/Qwen2.5-1.5B-Instruct", "Qwen/Qwen2.5-0.5B-Instruct"):
+        entry = lock["models"][repo_id]
+        snapshot_download(repo_id, revision=entry["revision"], local_dir=ROOT / entry["path"], ignore_patterns=SKIP_PATTERNS)
+        print(f"hub ok: {repo_id} @ {entry['revision']}", flush=True)
+    fetch_nltk({})
+
+
 def main():
+    if "--app-only" in sys.argv:
+        fetch_for_app()
+        return
     if "--models-from-lock" in sys.argv:
         fetch_models_from_lock()
         return

@@ -346,3 +346,16 @@ def test_a_briefly_busy_gpu_is_retried(monkeypatch):
 def test_a_full_gpu_gets_a_plain_message(monkeypatch):
     engine = load_engine(monkeypatch, failures=99)
     assert engine.state == "failed" and "Close other programs" in engine.error and "CUDA" not in engine.error
+
+
+@pytest.mark.parametrize("available, expected", [(16 * 1024**3, "float32"), (4 * 1024**3, "float16")])
+def test_cpu_precision_depends_on_free_memory(monkeypatch, available, expected):
+    import types
+
+    import app.engine as module
+    import torch
+
+    monkeypatch.setattr(module.psutil, "virtual_memory", lambda: types.SimpleNamespace(available=available))
+    engine = module.Engine()
+    engine.device = torch.device("cpu")
+    assert engine._target_dtype() == getattr(torch, expected)
