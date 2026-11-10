@@ -315,3 +315,34 @@ def test_reports_record_exact_model_and_adapter_versions():
 
 def test_unknown_model_folders_are_not_given_a_version():
     assert pinned_versions("models/other", None) == {"target_revision": "not pinned", "adapter_revision": "not pinned"}
+
+
+class ModelThatNeedsRoom:
+    def __init__(self, failures):
+        self.failures = failures
+
+    def to(self, _device):
+        if self.failures:
+            self.failures -= 1
+            raise RuntimeError("CUDA error: out of memory")
+        return self
+
+
+def load_engine(monkeypatch, failures):
+    import app.engine as module
+
+    monkeypatch.setattr(module, "load_for_inference", lambda *a: (ModelThatNeedsRoom(failures), "tokenizer"))
+    monkeypatch.setattr(module.time, "sleep", lambda _s: None)
+    engine = module.Engine()
+    engine.load()
+    return engine
+
+
+def test_a_briefly_busy_gpu_is_retried(monkeypatch):
+    engine = load_engine(monkeypatch, failures=2)
+    assert engine.state == "ready" and engine.error is None
+
+
+def test_a_full_gpu_gets_a_plain_message(monkeypatch):
+    engine = load_engine(monkeypatch, failures=99)
+    assert engine.state == "failed" and "Close other programs" in engine.error and "CUDA" not in engine.error

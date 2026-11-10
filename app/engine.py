@@ -1,6 +1,8 @@
 """Model access for the application. Screening uses this project's own decoders."""
+import gc
 import json
 import os
+import time
 from pathlib import Path
 
 import torch
@@ -20,6 +22,9 @@ ROOT = Path(__file__).resolve().parents[1]
 MAX_PROMPT_TOKENS = 2_048
 MAX_NEW_TOKENS = 96
 NOT_PINNED = "not pinned"
+GPU_ATTEMPTS = 4
+GPU_RETRY_SECONDS = 5
+GPU_BUSY = "The graphics card does not have enough free memory. Close other programs that use it, then restart CRS."
 
 
 def _setting(name, default):
@@ -56,13 +61,30 @@ class Engine:
 
     def load(self):
         try:
-            self.target, self.tokenizer = load_for_inference(
-                ROOT / self.target_path, self._adapter(self.target_adapter), self.device, torch.float16
+            # Merging the adapter on the CPU gives identical weights and leaves more of a 4 GB card free.
+            model, self.tokenizer = load_for_inference(
+                ROOT / self.target_path, self._adapter(self.target_adapter), torch.device("cpu"), torch.float16
             )
-            self.state = "ready"
+            self.target = self._move_to_gpu(model)
+            self.state = "ready" if self.target is not None else "failed"
+            self.error = None if self.target is not None else GPU_BUSY
         except Exception as error:  # Shown on screen in place of a server crash.
             self.state = "failed"
             self.error = f"The model could not be loaded: {error}"
+
+    def _move_to_gpu(self, model):
+        """The model nearly fills a 4 GB card, so another program can briefly leave too little room."""
+        for attempt in range(GPU_ATTEMPTS):
+            try:
+                return model.to(self.device)
+            except RuntimeError as error:
+                if "out of memory" not in str(error).lower():
+                    raise
+                gc.collect()
+                torch.cuda.empty_cache()
+                if attempt < GPU_ATTEMPTS - 1:
+                    time.sleep(GPU_RETRY_SECONDS)
+        return None
 
     def _load_draft(self):
         if self.draft is None:

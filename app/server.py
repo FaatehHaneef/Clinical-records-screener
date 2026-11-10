@@ -3,9 +3,13 @@
 One job runs at a time, because a single GPU model is shared. Usage: python -m app.server
 """
 import json
+import os
 import re
+import socket
 import threading
+import time
 import uuid
+import webbrowser
 from pathlib import Path
 
 import httpx
@@ -32,6 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REPORTS = ROOT / "reports"
 DEFAULT_STATIC = Path(__file__).resolve().parent / "web" / "dist"
 _REPORT_ID = re.compile(r"^[0-9a-f]{32}$")
+PORT = 8600
 CLINICAL_TRIALS = "https://clinicaltrials.gov/api/v2/studies/{}"
 MEMORY_MESSAGE = "The GPU ran out of memory. Close other GPU-heavy programs and try again."
 
@@ -256,15 +261,31 @@ def create_app(engine, reports_dir=DEFAULT_REPORTS, static_dir=DEFAULT_STATIC, t
     return app
 
 
+def _wait_for_port(port, attempts=100):
+    for _ in range(attempts):
+        try:
+            socket.create_connection(("127.0.0.1", port), timeout=1).close()
+            return
+        except OSError:
+            time.sleep(0.2)
+
+
 def main():
     import uvicorn
 
     from app.engine import Engine
 
     engine = Engine()
-    threading.Thread(target=engine.load, daemon=True).start()
+
+    def load_then_open_browser():
+        engine.load()
+        if os.environ.get("CRS_OPEN_BROWSER"):
+            _wait_for_port(PORT)
+            webbrowser.open(f"http://127.0.0.1:{PORT}")
+
+    threading.Thread(target=load_then_open_browser, daemon=True).start()
     print("CRS is running at http://127.0.0.1:8600  (close this window to stop it)", flush=True)
-    uvicorn.run(create_app(engine), host="127.0.0.1", port=8600, log_level="warning")
+    uvicorn.run(create_app(engine), host="127.0.0.1", port=PORT, log_level="warning")
 
 
 if __name__ == "__main__":

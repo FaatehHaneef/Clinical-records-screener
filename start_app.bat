@@ -18,8 +18,8 @@ if not exist "app\web\dist\index.html" (
   exit /b 1
 )
 
-echo Starting CRS. Your browser will open shortly.
-start "" /b cmd /c "%SystemRoot%\System32\timeout.exe /t 3 /nobreak >nul & start http://127.0.0.1:8600"
+echo Starting CRS. Your browser will open when the model is ready.
+set CRS_OPEN_BROWSER=1
 .venv\Scripts\python.exe -m app.server
 echo.
 echo CRS has stopped.
