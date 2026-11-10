@@ -359,3 +359,25 @@ def test_cpu_precision_depends_on_free_memory(monkeypatch, available, expected):
     engine = module.Engine()
     engine.device = torch.device("cpu")
     assert engine._target_dtype() == getattr(torch, expected)
+
+
+def test_uncited_verdicts_count_as_unconfirmed_and_not_met():
+    counts = overall_result([record("included", "[0]"), record("not excluded", "[]", "exclusion"), record("not included", "[]")])["counts"]
+    assert (counts["met"], counts["failed"], counts["unconfirmed"]) == (1, 0, 2)
+
+
+def test_uncited_unknown_is_not_counted_twice():
+    counts = overall_result([record("not enough information", "[]")])["counts"]
+    assert (counts["unknown"], counts["unconfirmed"]) == (1, 0)
+
+
+def test_report_shows_uncited_verdicts_as_unconfirmed():
+    html = render_report_html(full_report())
+    assert "<b>1</b><span>Met</span>" in html and "<b>1</b><span>Unconfirmed</span>" in html
+    assert "tag unknown'>Not excluded" in html
+
+
+def test_old_reports_are_recounted():
+    report = full_report()
+    report["overall"]["counts"] = {"met": 2, "failed": 0, "unknown": 0, "not_applicable": 0, "unverified": 0, "no_evidence": 1}
+    assert "<b>1</b><span>Met</span>" in render_report_html(report)

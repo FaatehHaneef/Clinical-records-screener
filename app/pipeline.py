@@ -165,8 +165,10 @@ def missing_to_show(record):
 def overall_result(records):
     """Apply the stated rule. A failure with no cited evidence cannot make a patient ineligible."""
     counts = {
-        "met": sum(r["label"] in MET for r in records),
-        "failed": sum(r["label"] in FAILED for r in records),
+        # A verdict with no citation is unconfirmed, so it never counts as met or failed.
+        "met": sum(r["label"] in MET and not r["unconfirmed"] for r in records),
+        "failed": sum(r["label"] in FAILED and not r["unconfirmed"] for r in records),
+        "unconfirmed": sum(r["unconfirmed"] and r["label"] != UNKNOWN for r in records),
         "unknown": sum(r["label"] == UNKNOWN for r in records),
         "not_applicable": sum(r["label"] == NOT_APPLICABLE for r in records),
         "unverified": sum(r["label"] == INVALID for r in records),

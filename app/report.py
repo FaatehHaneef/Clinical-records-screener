@@ -9,7 +9,7 @@ from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 
-from app.pipeline import FAILED, MET, NOT_APPLICABLE, UNKNOWN, missing_to_show, overall_reason
+from app.pipeline import FAILED, MET, NOT_APPLICABLE, UNKNOWN, missing_to_show, overall_reason, overall_result
 
 FONTS = Path(__file__).resolve().parent / "assets" / "fonts"
 ADJUSTED_NOTE = "Adjusted by number check."
@@ -20,7 +20,7 @@ _COUNTS = (
     ("unknown", "Unknown"),
     ("not_applicable", "Not applicable"),
     ("unverified", "Unverified"),
-    ("no_evidence", "No citation"),
+    ("unconfirmed", "Unconfirmed"),
 )
 _FIELD_NAMES = {"note_sha256": "Note SHA-256", "target_model": "Target model", "output_order": "Output order", "decoding_mode": "Decoding mode", "target_revision": "Target revision", "adapter_revision": "Adapter revision"}
 
@@ -85,7 +85,10 @@ def _font_faces():
     return "".join(faces)
 
 
-def _tag_class(label):
+def _tag_class(record):
+    label = record["label"]
+    if record["unconfirmed"]:
+        return "unknown"
     if label in MET:
         return "met"
     if label in FAILED:
@@ -117,7 +120,7 @@ def _criterion(record, e):
     adjusted = f"<p class='adjusted'>{ADJUSTED_NOTE}</p>" if record.get("adjusted") else ""
     return (
         f"<article class='crit'><div class='head'><h3>{e(record['criterion'])}</h3>"
-        f"<span class='tag {_tag_class(record['label'])}'>{e(_label_text(record['label']))}</span></div>"
+        f"<span class='tag {_tag_class(record)}'>{e(_label_text(record['label']))}</span></div>"
         f"{quotes}<p class='why'>{e(why)}</p>{missing}{adjusted}</article>"
     )
 
@@ -132,7 +135,9 @@ def render_report_html(report):
     overall, records = report["overall"], report["results"]
     reason = overall.get("reason") or overall_reason(records)
     cited = {i for r in records for i in r["evidence_ids"]}
-    counts = "".join(f"<li><b>{e(overall['counts'].get(key, 0))}</b><span>{name}</span></li>" for key, name in _COUNTS)
+    # Counted again here so reports saved under the older count definitions match the screen.
+    tally = overall_result(records)["counts"]
+    counts = "".join(f"<li><b>{e(tally[key])}</b><span>{name}</span></li>" for key, name in _COUNTS)
     note = "".join(
         f"<li{' class=cited' if s['id'] in cited else ''}><span class='sid'>{e(s['id'])}</span><span>{e(s['text'])}</span></li>"
         for s in report["patient_sentences"]

@@ -16,10 +16,10 @@ export function verdictText(label: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-export function Verdict({ label, className = '' }: { label: string; className?: string }) {
+export function Verdict({ label, unconfirmed = false, className = '' }: { label: string; unconfirmed?: boolean; className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
-      <span className={`dot dot-${verdictKind(label)}`} aria-hidden="true" />
+      <span className={`dot dot-${unconfirmed ? 'unknown' : verdictKind(label)}`} aria-hidden="true" />
       {verdictText(label)}
     </span>
   );

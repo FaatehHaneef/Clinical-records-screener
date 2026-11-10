@@ -1,5 +1,5 @@
 import type { CriterionResult, Overall } from './api';
-import { Notice, Verdict } from './shared';
+import { Notice, Verdict, verdictKind } from './shared';
 
 export type Screening = {
   overall: Overall;
@@ -8,13 +8,16 @@ export type Screening = {
   sentences: string[];
 };
 
-function countLine(counts: Record<string, number>) {
+function countLine(results: CriterionResult[]) {
+  const count = (test: (result: CriterionResult) => boolean) => results.filter(test).length;
+  const kind = (result: CriterionResult) => verdictKind(result.label);
   return [
-    [counts.met, 'met'],
-    [counts.failed, 'failed'],
-    [counts.unknown, 'unknown'],
-    [counts.not_applicable, 'not applicable'],
-    [counts.unverified, 'unverified'],
+    [count((r) => kind(r) === 'met' && !r.unconfirmed), 'met'],
+    [count((r) => kind(r) === 'failed' && !r.unconfirmed), 'failed'],
+    [count((r) => r.unconfirmed && kind(r) !== 'unknown'), 'unconfirmed'],
+    [count((r) => kind(r) === 'unknown'), 'unknown'],
+    [count((r) => kind(r) === 'na'), 'not applicable'],
+    [count((r) => kind(r) === 'invalid'), 'unverified'],
   ]
     .filter(([value]) => value)
     .map(([value, label]) => `${value} ${label}`)
@@ -28,7 +31,7 @@ export function Results({ screening, onOpen, onEdit }: { screening: Screening; o
       <div className="text-center">
         <p className="m-0 text-sm tracking-wide text-neutral-400 uppercase">Overall · preliminary</p>
         <h1 className="glow-text m-0 mt-2 text-6xl font-medium">{overall.outcome}</h1>
-        <p className="m-0 mt-3 text-lg text-neutral-300 tabular-nums">{countLine(overall.counts)}</p>
+        <p className="m-0 mt-3 text-lg text-neutral-300 tabular-nums">{countLine(results)}</p>
         {overall.reason && <p className="m-0 mt-1 text-neutral-300">{overall.reason}</p>}
       </div>
       <div className="flex flex-wrap justify-center gap-3">
@@ -50,7 +53,7 @@ export function Results({ screening, onOpen, onEdit }: { screening: Screening; o
               <span className="block">{result.criterion}</span>
             </span>
             <span className="flex shrink-0 flex-col items-end gap-0.5">
-              <Verdict label={result.label} />
+              <Verdict label={result.label} unconfirmed={result.unconfirmed} />
               <span className="text-xs text-neutral-400 tabular-nums">
                 {result.evidence_ids.length ? `${result.evidence_ids.length} cited` : 'none cited'}
               </span>
@@ -97,7 +100,7 @@ export function CriterionDetail({ screening, index, onBack, onMove }: { screenin
           {result.criterion_type} · criterion {index + 1} of {total}
         </p>
         <h1 className="m-0 mt-1 text-2xl leading-snug font-medium">{result.criterion}</h1>
-        <Verdict label={result.label} className="glow-text mt-3 text-3xl" />
+        <Verdict label={result.label} unconfirmed={result.unconfirmed} className="glow-text mt-3 text-3xl" />
       </div>
       <div>
         <p className="m-0 leading-relaxed text-neutral-200">{result.explanation}</p>
