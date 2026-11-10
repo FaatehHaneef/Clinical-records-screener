@@ -116,7 +116,7 @@ These figures measure the model alone, without the number check. With only 8 tes
 - The training data is small (602 rows) and some labels are rare. "Excluded" has no test examples, so it couldn't be measured.
 - The number check handles only simple comparisons, and it hasn't been validated on BMI or lab values against dataset labels.
 
-The full analysis is in [`results/error_analysis.md`](results/error_analysis.md) and the [paper](report/main.pdf).
+The full analysis is in [`results/error_analysis.md`](results/error_analysis.md) and the [paper](report/i230688_A_Assignment2-Report.pdf).
 
 ## Configuration
 
@@ -159,7 +159,7 @@ tests/          Automated tests
 results/        Metrics, predictions, benchmark logs and error analysis
 splits/         Patient split manifest
 report/         Paper source and the script that builds its figures and tables
-docs/           Design decisions and failures
+docs/           Problem statement and design document
 ```
 
 Run the tests with `python -m pytest`. Some of them load the models, so finish setup first and leave the GPU free.
@@ -174,8 +174,8 @@ The patient split is fixed in [`splits/manifest.json`](splits/manifest.json): so
 2. **Evaluate and benchmark.** Run [`kaggle/final_eval_and_benchmarks.ipynb`](kaggle/final_eval_and_benchmarks.ipynb), which uses the frozen `final-config` tag. The test split can only be read with an explicit `--final` flag, and each access is logged to `results/test_access_log.jsonl`.
 3. **Rebuild the paper's figures and tables** with `python report/make_assets.py`.
 
-Decisions, rejected options and failures along the way are recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md).
+The problem is defined in [`docs/PROBLEM_STATEMENT.md`](docs/PROBLEM_STATEMENT.md), and [`docs/DESIGN_AND_IMPLEMENTATION.md`](docs/DESIGN_AND_IMPLEMENTATION.md) covers the design, rejected options and engineering problems.
 
 ## Acknowledgements
 
-CRS builds on the [TrialGPT Criterion Annotations](https://huggingface.co/datasets/ncbi/TrialGPT-Criterion-Annotations) from NCBI and [Qwen2.5](https://github.com/QwenLM/Qwen2.5) (Apache 2.0). GPT-4 predictions in that dataset are never used. The interface adapts a dock component from [21st.dev](https://21st.dev) and uses [thinking-orbs](https://www.npmjs.com/package/thinking-orbs). The method draws on LoRA, FlashAttention, online softmax and speculative decoding, cited in the [paper](report/main.pdf).
+CRS builds on the [TrialGPT Criterion Annotations](https://huggingface.co/datasets/ncbi/TrialGPT-Criterion-Annotations) from NCBI and [Qwen2.5](https://github.com/QwenLM/Qwen2.5) (Apache 2.0). GPT-4 predictions in that dataset are never used. The interface adapts a dock component from [21st.dev](https://21st.dev) and uses [thinking-orbs](https://www.npmjs.com/package/thinking-orbs). The method draws on LoRA, FlashAttention, online softmax and speculative decoding, cited in the [paper](report/i230688_A_Assignment2-Report.pdf).
